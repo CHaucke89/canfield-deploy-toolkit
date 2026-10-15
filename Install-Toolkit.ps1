@@ -1,8 +1,9 @@
 <#
 .SYNOPSIS
-    Deploy Toolkit: one window with two tabs.
+        Deploy Toolkit: one window with three tabs.
       1) LogMeIn      - pick a sponsor from the CSV; installs LogMeIn silently with that Deploy ID.
       2) Canfield Capture Installer - finds setup.exe on connected USB drive(s); installs the chosen one silently.
+            3) Device Status - shows ResolveMDM and BitLocker status; can enroll ResolveMDM.
 
 .PARAMETER CsvPath
     Sponsor CSV (Sponsor,DeployID). Defaults to LogMeInDeploy.csv next to the script/exe.
@@ -40,7 +41,8 @@ $EmbeddedCsv = $null # __EMBEDDED_CSV__
 
 $logMeInScript = Join-Path $scriptDir 'Install-LogMeIn.ps1'
 $canfieldScript = Join-Path $scriptDir 'Install-CanfieldCapture.ps1'
-foreach ($requiredScript in @($logMeInScript, $canfieldScript)) {
+$deviceStatusScript = Join-Path $scriptDir 'Install-DeviceStatus.ps1'
+foreach ($requiredScript in @($logMeInScript, $canfieldScript, $deviceStatusScript)) {
     if (-not (Test-Path -LiteralPath $requiredScript)) {
         [void][System.Windows.Forms.MessageBox]::Show(
             "Required file not found:`n$requiredScript",
@@ -87,7 +89,8 @@ $form.Controls.Add($tabs)
 
 $tabLmi = New-Object System.Windows.Forms.TabPage; $tabLmi.Text = 'LogMeIn'
 $tabUsb = New-Object System.Windows.Forms.TabPage; $tabUsb.Text = 'Canfield Capture Installer'
-$tabs.TabPages.Add($tabLmi); $tabs.TabPages.Add($tabUsb)
+$tabStatus = New-Object System.Windows.Forms.TabPage; $tabStatus.Text = 'Device Status'
+$tabs.TabPages.Add($tabLmi); $tabs.TabPages.Add($tabUsb); $tabs.TabPages.Add($tabStatus)
 
 $btnClose = New-Object System.Windows.Forms.Button
 $btnClose.Text         = 'Close'
@@ -197,5 +200,8 @@ Initialize-LogMeInTab -Tab $tabLmi -CsvPath $CsvPath -EmbeddedCsv $EmbeddedCsv `
 Initialize-CanfieldCaptureTab -Tab $tabUsb -Tabs $tabs -SilentArgs $SilentArgs `
     -EnterBusy $enterBusyAction -ExitBusy $exitBusyAction -ShowMessage $showMessageAction `
     -SetStatus $setStatusAction -InvokeWithProgress $invokeWithProgressAction
+
+Initialize-DeviceStatusTab -Tab $tabStatus -Form $form -ScriptDir $scriptDir `
+    -EnterBusy $enterBusyAction -ExitBusy $exitBusyAction -ShowMessage $showMessageAction
 
 [void]$form.ShowDialog()
