@@ -44,6 +44,72 @@ function Get-ResolveMdmStatus {
     return $result
 }
 
+function Get-ToolkitStatePath {
+    [CmdletBinding()]
+    param()
+
+    $base = Join-Path $env:ProgramData 'CanfieldDeployToolkit'
+    return (Join-Path $base 'state.json')
+}
+
+function Get-ToolkitState {
+    [CmdletBinding()]
+    param()
+
+    $defaultState = [pscustomobject]@{
+        ResolveMdm = [pscustomobject]@{
+            EnrollConfirmed = $false
+            LastConfirmedAt = $null
+        }
+    }
+
+    $path = Get-ToolkitStatePath
+    if (-not (Test-Path -LiteralPath $path)) {
+        return $defaultState
+    }
+
+    try {
+        $raw = Get-Content -LiteralPath $path -Raw -ErrorAction Stop
+        if ([string]::IsNullOrWhiteSpace($raw)) {
+            return $defaultState
+        }
+
+        $state = $raw | ConvertFrom-Json -ErrorAction Stop
+        if (-not $state.ResolveMdm) {
+            $state | Add-Member -MemberType NoteProperty -Name ResolveMdm -Value ([pscustomobject]@{
+                EnrollConfirmed = $false
+                LastConfirmedAt = $null
+            }) -Force
+        }
+        if ($state.ResolveMdm.PSObject.Properties.Name -notcontains 'EnrollConfirmed') {
+            $state.ResolveMdm | Add-Member -MemberType NoteProperty -Name EnrollConfirmed -Value $false -Force
+        }
+        if ($state.ResolveMdm.PSObject.Properties.Name -notcontains 'LastConfirmedAt') {
+            $state.ResolveMdm | Add-Member -MemberType NoteProperty -Name LastConfirmedAt -Value $null -Force
+        }
+        return $state
+    } catch {
+        return $defaultState
+    }
+}
+
+function Save-ToolkitState {
+    [CmdletBinding()]
+    param(
+        [Parameter(Mandatory = $true)]
+        [pscustomobject]$State
+    )
+
+    $path = Get-ToolkitStatePath
+    $dir = Split-Path -Parent $path
+    if (-not (Test-Path -LiteralPath $dir)) {
+        New-Item -Path $dir -ItemType Directory -Force | Out-Null
+    }
+
+    $json = $State | ConvertTo-Json -Depth 5
+    Set-Content -LiteralPath $path -Value $json -Encoding UTF8
+}
+
 function Get-BitLockerStatus {
     [CmdletBinding()]
     param()
@@ -290,10 +356,14 @@ function Update-ResolveMdmStatusControls {
         [System.Windows.Forms.Label]$DetailLabel,
 
         [Parameter(Mandatory = $true)]
-        [System.Windows.Forms.Button]$EnrollButton
+        [System.Windows.Forms.Button]$EnrollButton,
+
+        [Parameter(Mandatory = $true)]
+        [pscustomobject]$ToolkitState
     )
 
     $status = Get-ResolveMdmStatus
+    $persistedConfirmed = [bool]$ToolkitState.ResolveMdm.EnrollConfirmed
 
     if ($status.Enrolled) {
         $StatusLabel.Text = 'Connected to ResolveMDM'
@@ -303,13 +373,19 @@ function Update-ResolveMdmStatusControls {
         if ($status.ServerUrl) { $details += "Server: $($status.ServerUrl)" }
         if ($status.UPN) { $details += "User: $($status.UPN)" }
         if ($status.ProviderID) { $details += "Provider: $($status.ProviderID)" }
+        if ($ToolkitState.ResolveMdm.LastConfirmedAt) { $details += "Confirmed: $($ToolkitState.ResolveMdm.LastConfirmedAt)" }
         $DetailLabel.Text = ($details -join "`r`n")
         $EnrollButton.Enabled = $false
     } else {
         $StatusLabel.Text = 'Not connected to ResolveMDM'
         $StatusLabel.ForeColor = [System.Drawing.Color]::Firebrick
-        $DetailLabel.Text = 'Click Enroll to install the Resolve MDM provisioning package.'
-        $EnrollButton.Enabled = $true
+        if ($persistedConfirmed) {
+            $DetailLabel.Text = 'Enrollment previously confirmed for this toolkit. Re-run enrollment from the source setup tool if needed.'
+            $EnrollButton.Enabled = $false
+        } else {
+            $DetailLabel.Text = 'Click Enroll to install the Resolve MDM provisioning package.'
+            $EnrollButton.Enabled = $true
+        }
     }
 
     return $status
@@ -464,8 +540,10 @@ function Initialize-DeviceStatusTab {
     $bitlockerDetailsBox.ReadOnly = $true
     $grpBitLocker.Controls.Add($bitlockerDetailsBox)
 
+    $state = Get-ToolkitState
+
     $updateAll = {
-        Update-ResolveMdmStatusControls -StatusLabel $mdmStatusLabel -DetailLabel $mdmDetailsLabel -EnrollButton $btnMdmEnroll | Out-Null
+        Update-ResolveMdmStatusControls -StatusLabel $mdmStatusLabel -DetailLabel $mdmDetailsLabel -EnrollButton $btnMdmEnroll -ToolkitState $state | Out-Null
         Update-BitLockerStatusControls -SummaryLabel $bitlockerSummaryLabel -DetailTextBox $bitlockerDetailsBox
     }
 
@@ -492,6 +570,11 @@ function Initialize-DeviceStatusTab {
         & $EnterBusy 'Enrolling in Resolve MDM...'
         try {
             Install-ProvisioningPackage -PackagePath $ppkgPath -QuietInstall -ErrorAction Stop
+
+            $state.ResolveMdm.EnrollConfirmed = $true
+            $state.ResolveMdm.LastConfirmedAt = (Get-Date).ToString('s')
+            Save-ToolkitState -State $state
+
             & $ExitBusy
             & $ShowMessage 'Resolve MDM enrollment successful.' 'Information'
             & $updateAll
