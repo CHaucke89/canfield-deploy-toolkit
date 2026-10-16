@@ -8,7 +8,11 @@ $ErrorActionPreference = 'Stop'
 $src = Join-Path $PSScriptRoot 'Install-Toolkit.ps1'
 $csv = Join-Path $PSScriptRoot 'LogMeInDeploy.csv'
 $tmp = Join-Path $PSScriptRoot 'Install-Toolkit.build.ps1'
-$out = Join-Path $PSScriptRoot 'DeployToolkit.exe'
+$out = Join-Path $PSScriptRoot 'build\DeployToolkit.exe'
+
+if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'build'))) {
+    New-Item -ItemType Directory -Path (Join-Path $PSScriptRoot 'build') | Out-Null
+}
 
 if (-not (Get-Module -ListAvailable -Name ps2exe)) {
     Install-Module ps2exe -Scope CurrentUser -Force
