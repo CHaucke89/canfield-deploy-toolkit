@@ -9,7 +9,8 @@
     If missing, an embedded copy (added by Build-Toolkit-Exe.ps1) is used.
 
 .PARAMETER SilentArgs
-    Default silent switches for Canfield Capture installer (editable in the window).
+    Default silent switches for Canfield Capture installers (editable in the window).
+    Common: /S (NSIS), /VERYSILENT /NORESTART (Inno), /quiet /norestart (WiX Burn), /s /v"/qn" (InstallShield).
 #>
 [CmdletBinding()]
 param(
@@ -21,7 +22,7 @@ Add-Type -AssemblyName System.Windows.Forms
 Add-Type -AssemblyName System.Drawing
 [System.Windows.Forms.Application]::EnableVisualStyles()
 
-$appTitle = 'Canfield Deploy Toolkit'
+$appTitle = 'Canfield Deployment Toolkit'
 
 # --- Exe vs .ps1 detection (PS2EXE leaves $PSScriptRoot/$PSCommandPath empty) ---
 $procPath = [System.Diagnostics.Process]::GetCurrentProcess().MainModule.FileName
@@ -64,13 +65,12 @@ $form = New-Object System.Windows.Forms.Form
 $form.Text            = $appTitle
 $form.ClientSize      = New-Object System.Drawing.Size(540, 430)
 $form.StartPosition   = 'CenterScreen'
-$form.FormBorderStyle = 'Sizable'
-$form.MinimumSize     = New-Object System.Drawing.Size(520, 460)   # smallest window size allowed
+$form.FormBorderStyle = 'FixedDialog'
+$form.MaximizeBox     = $false
 
 $tabs = New-Object System.Windows.Forms.TabControl
 $tabs.Location = New-Object System.Drawing.Point(10, 10)
 $tabs.Size     = New-Object System.Drawing.Size(520, 370)
-$tabs.Anchor = 'Top,Bottom,Left,Right'
 $form.Controls.Add($tabs)
 
 $tabLmi = New-Object System.Windows.Forms.TabPage; $tabLmi.Text = 'LogMeIn'
@@ -82,7 +82,6 @@ $btnClose.Text         = 'Close'
 $btnClose.Location     = New-Object System.Drawing.Point(445, 390)
 $btnClose.Size         = New-Object System.Drawing.Size(85, 28)
 $btnClose.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
-$btnClose.Anchor = 'Bottom,Right'
 $form.Controls.Add($btnClose)
 $form.CancelButton = $btnClose
 
@@ -178,7 +177,6 @@ $combo.Location      = New-Object System.Drawing.Point(15, 45)
 $combo.Size          = New-Object System.Drawing.Size(480, 24)
 $combo.DisplayMember = 'Sponsor'
 foreach ($s in $sponsors) { [void]$combo.Items.Add($s) }
-$combo.Anchor = 'Top,Left,Right'
 $tabLmi.Controls.Add($combo)
 
 $btnLmi = New-Object System.Windows.Forms.Button
@@ -186,7 +184,6 @@ $btnLmi.Text     = 'Install LogMeIn'
 $btnLmi.Location = New-Object System.Drawing.Point(375, 90)
 $btnLmi.Size     = New-Object System.Drawing.Size(120, 30)
 $btnLmi.Enabled  = $false
-$btnLmi.Anchor = 'Top,Right'
 $tabLmi.Controls.Add($btnLmi)
 
 if ($sponsors.Count -eq 0) {
@@ -196,7 +193,6 @@ if ($sponsors.Count -eq 0) {
     $lmiNote.ForeColor = [System.Drawing.Color]::Firebrick
     $lmiNote.Location  = New-Object System.Drawing.Point(15, 135)
     $lmiNote.Size      = New-Object System.Drawing.Size(480, 40)
-    $lmiNote.Anchor = 'Top,Left,Right'
     $tabLmi.Controls.Add($lmiNote)
 }
 
@@ -234,7 +230,7 @@ $btnLmi.Add_Click({
 })
 
 # =====================================================================
-#  Tab 2: Canfield Capture Installer
+#  Tab 2: Canfield Capture
 # =====================================================================
 function Get-UsbDriveRoots {
     $roots = @()
@@ -261,37 +257,32 @@ $usbInfo = New-Object System.Windows.Forms.Label
 $usbInfo.Text     = 'Click Scan USB to look for setup.exe.'
 $usbInfo.Location = New-Object System.Drawing.Point(115, 18)
 $usbInfo.Size     = New-Object System.Drawing.Size(380, 18)
-$usbInfo.Anchor = 'Top,Left,Right'
 $tabUsb.Controls.Add($usbInfo)
 
 $list = New-Object System.Windows.Forms.ListBox
 $list.Location      = New-Object System.Drawing.Point(15, 48)
-$list.Size          = New-Object System.Drawing.Size(480, 195)
+$list.Size          = New-Object System.Drawing.Size(480, 200)
 $list.HorizontalScrollbar = $true
 $list.DisplayMember = 'Display'
-$list.Anchor = 'Top,Bottom,Left,Right'
 $tabUsb.Controls.Add($list)
 
 $argLabel = New-Object System.Windows.Forms.Label
 $argLabel.Text     = 'Silent install switches (vary by installer, e.g. /S, /VERYSILENT, /quiet):'
-$argLabel.Location = New-Object System.Drawing.Point(15, 255)
+$argLabel.Location = New-Object System.Drawing.Point(15, 260)
 $argLabel.AutoSize = $true
-$argLabel.Anchor = 'Bottom,Left'
 $tabUsb.Controls.Add($argLabel)
 
 $argBox = New-Object System.Windows.Forms.TextBox
 $argBox.Text     = $SilentArgs
-$argBox.Location = New-Object System.Drawing.Point(15, 277)
+$argBox.Location = New-Object System.Drawing.Point(15, 282)
 $argBox.Size     = New-Object System.Drawing.Size(480, 22)
-$argBox.Anchor = 'Bottom,Left,Right'
 $tabUsb.Controls.Add($argBox)
 
 $btnUsb = New-Object System.Windows.Forms.Button
 $btnUsb.Text     = 'Install Selected'
-$btnUsb.Location = New-Object System.Drawing.Point(375, 305)
+$btnUsb.Location = New-Object System.Drawing.Point(375, 315)
 $btnUsb.Size     = New-Object System.Drawing.Size(120, 30)
 $btnUsb.Enabled  = $false
-$btnUsb.Anchor = 'Bottom,Right'
 $tabUsb.Controls.Add($btnUsb)
 
 $script:usbScanned = $false
