@@ -74,7 +74,7 @@ $tabs.Size     = New-Object System.Drawing.Size(520, 370)
 $form.Controls.Add($tabs)
 
 $tabLmi = New-Object System.Windows.Forms.TabPage; $tabLmi.Text = 'LogMeIn'
-$tabUsb = New-Object System.Windows.Forms.TabPage; $tabUsb.Text = 'Canfield Capture Installer'
+$tabUsb = New-Object System.Windows.Forms.TabPage; $tabUsb.Text = 'Canfield Capture'
 $tabs.TabPages.Add($tabLmi); $tabs.TabPages.Add($tabUsb)
 
 $btnClose = New-Object System.Windows.Forms.Button
@@ -267,7 +267,7 @@ $list.DisplayMember = 'Display'
 $tabUsb.Controls.Add($list)
 
 $argLabel = New-Object System.Windows.Forms.Label
-$argLabel.Text     = 'Silent install switches (vary by installer, e.g. /S, /VERYSILENT, /quiet):'
+$argLabel.Text     = 'Silent install switches (leave default values if unsure):'
 $argLabel.Location = New-Object System.Drawing.Point(15, 260)
 $argLabel.AutoSize = $true
 $tabUsb.Controls.Add($argLabel)
@@ -309,7 +309,7 @@ function Invoke-UsbScan {
     while ($stack.Count -gt 0 -and -not $script:cancelRequested) {
         $dir = $stack.Pop()
         $scanned++
-        if ($scanned % 25 -eq 0) { Set-Status ("Searching USB drive for setup.exe...`n{0}" -f $dir) }
+        if ($scanned % 25 -eq 0) { Set-Status ("Searching USB drive for Canfield Capture installers...`n{0}" -f $dir) }
         else { [System.Windows.Forms.Application]::DoEvents() }
         try {
             if ([System.IO.File]::Exists((Join-Path $dir 'setup.exe'))) { $found.Add($dir) }
@@ -325,7 +325,7 @@ function Invoke-UsbScan {
     Exit-Busy
 
     if ($cancelled) { $usbInfo.Text = 'Scan cancelled.'; return }
-    if ($found.Count -eq 0) { $usbInfo.Text = 'No setup.exe found on the USB drive.'; return }
+    if ($found.Count -eq 0) { $usbInfo.Text = 'No installer found on the USB drive.'; return }
 
     foreach ($f in ($found | Sort-Object)) {
         $name = Split-Path -Leaf $f
@@ -333,7 +333,7 @@ function Invoke-UsbScan {
         $display = '{0}    ({1})' -f $name, $f
         [void]$list.Items.Add([pscustomobject]@{ Display = $display; Folder = $f })
     }
-    $usbInfo.Text = 'Found setup.exe in {0} folder(s). Select one:' -f $found.Count
+    $usbInfo.Text = 'Found installer(s) in {0} folder(s). Select one:' -f $found.Count
 }
 
 $btnScan.Add_Click({ Invoke-UsbScan })
@@ -349,7 +349,7 @@ $btnUsb.Add_Click({
     $swArgs = $argBox.Text.Trim()
 
     if (-not (Test-Path -LiteralPath $setup)) {
-        Show-Message "setup.exe is no longer available:`n$setup`nWas the USB drive removed?" 'Error'
+        Show-Message "Installer is no longer available:`n$setup`nWas the USB drive removed?" 'Error'
         return
     }
 
