@@ -1,0 +1,37 @@
+name: Build DeployToolkit EXE
+
+on:
+  push:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare PowerShell module sources
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          Install-PSResource -Name ps2exe -Scope CurrentUser -TrustRepository
+
+      - name: Build EXE with PS2EXE
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          ./Build-Toolkit-Exe.ps1
+
+      - name: Upload DeployToolkit.exe artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: DeployToolkit-exe
+          path: DeployToolkit-Package/DeployToolkit.exe
+          if-no-files-found: error
