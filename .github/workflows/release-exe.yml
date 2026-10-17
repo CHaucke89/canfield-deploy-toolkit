@@ -1,0 +1,41 @@
+name: Release DeployToolkit EXE
+
+on:
+  push:
+    tags:
+      - "v*"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  release-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Prepare PowerShell module sources
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
+          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+
+      - name: Build EXE with PS2EXE
+        shell: pwsh
+        run: |
+          Set-StrictMode -Version Latest
+          $ErrorActionPreference = 'Stop'
+          ./Build-Toolkit-Exe.ps1
+
+      - name: Create GitHub Release and upload EXE
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/DeployToolkit.exe
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
