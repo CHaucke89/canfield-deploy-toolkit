@@ -20,8 +20,7 @@ jobs:
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
-          Install-PackageProvider -Name NuGet -MinimumVersion 2.8.5.201 -Force
-          Set-PSRepository -Name PSGallery -InstallationPolicy Trusted
+          Install-PSResource -Name ps2exe -Scope CurrentUser -TrustRepository
 
       - name: Build EXE with PS2EXE
         shell: pwsh
