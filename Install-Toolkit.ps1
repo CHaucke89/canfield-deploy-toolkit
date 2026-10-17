@@ -74,9 +74,10 @@ $tabs.Location = New-Object System.Drawing.Point(10, 10)
 $tabs.Size     = New-Object System.Drawing.Size(520, 370)
 $form.Controls.Add($tabs)
 
+$tabName = New-Object System.Windows.Forms.TabPage; $tabName.Text = 'Computer Name'
 $tabLmi = New-Object System.Windows.Forms.TabPage; $tabLmi.Text = 'LogMeIn'
 $tabUsb = New-Object System.Windows.Forms.TabPage; $tabUsb.Text = 'Canfield Capture'
-$tabs.TabPages.Add($tabLmi); $tabs.TabPages.Add($tabUsb)
+$tabs.TabPages.Add($tabName); $tabs.TabPages.Add($tabLmi); $tabs.TabPages.Add($tabUsb)
 
 $btnClose = New-Object System.Windows.Forms.Button
 $btnClose.Text         = 'Close'
@@ -374,10 +375,6 @@ $btnUsb.Add_Click({
 # =====================================================================
 #  Tab 3: Computer Name
 # =====================================================================
-$tabName = New-Object System.Windows.Forms.TabPage; $tabName.Text = 'Computer Name'
-$tabs.TabPages.Insert(0, $tabName)
-$tabs.SelectedTab = $tabName
-
 $nameCurrent = New-Object System.Windows.Forms.Label
 $nameCurrent.Text     = "Current computer name: $env:COMPUTERNAME"
 $nameCurrent.Location = New-Object System.Drawing.Point(15, 20)
