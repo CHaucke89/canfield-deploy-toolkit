@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
-    Packages Install-Toolkit.ps1 into a single DeployToolkit.exe using PS2EXE (run on Windows).
-    Run from the folder containing Install-Toolkit.ps1 and sponsors.csv.
+    Packages Install-Toolkit.ps1 plus the src\ files (inlined) into a single DeployToolkit.exe using PS2EXE (run on Windows).
+    Run from the folder containing Install-Toolkit.ps1, src\ and sponsors.csv.
     If blocked by execution policy: powershell -ExecutionPolicy Bypass -File .\Build-Toolkit-Exe.ps1
 #>
 $ErrorActionPreference = 'Stop'
@@ -19,8 +19,20 @@ if (-not (Get-Module -ListAvailable -Name ps2exe)) {
 }
 Import-Module ps2exe
 
+# Inline the src\ files (in LoadOrder.ps1 order) in place of the dot-source block, so the exe is self-contained.
+$srcDir = Join-Path $PSScriptRoot 'src'
+$parts  = foreach ($rel in (& (Join-Path $srcDir 'LoadOrder.ps1'))) {
+    "# ---- src\$rel ----`r`n" + (Get-Content -LiteralPath (Join-Path $srcDir $rel) -Raw)
+}
+$inlined = $parts -join "`r`n"
+
 # Embed a snapshot of the CSV as a fallback (an external CSV beside the exe still takes priority).
 $content = Get-Content -LiteralPath $src -Raw
+$begin = $content.IndexOf('# __SOURCES_BEGIN__')
+$endMarker = '# __SOURCES_END__'
+$end = $content.IndexOf($endMarker)
+if ($begin -lt 0 -or $end -lt $begin) { throw 'Source markers not found in Install-Toolkit.ps1.' }
+$content = $content.Substring(0, $begin) + $inlined + $content.Substring($end + $endMarker.Length)
 if (Test-Path -LiteralPath $csv) {
     $csvText = (Get-Content -LiteralPath $csv -Raw).TrimEnd()
     $embed   = "`$EmbeddedCsv = @'`r`n$csvText`r`n'@"

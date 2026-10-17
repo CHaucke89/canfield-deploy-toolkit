@@ -11,8 +11,12 @@ The toolkit can run as a PowerShell script or as a packaged executable.
 
 ## Project Files
 
-- `Install-Toolkit.ps1`: Main WinForms app.
-- `Build-Toolkit-Exe.ps1`: Builds `DeployToolkit.exe` using PS2EXE.
+- `Install-Toolkit.ps1`: Entry point (startup, elevation, loads `src\`).
+- `src\LoadOrder.ps1`: Ordered list of source files to load (also used by the build).
+- `src\Lib\`: UI-free helpers (validation, sponsor CSV, USB discovery).
+- `src\Ui\`: Main window and shared progress/message helpers.
+- `src\Tabs\`: One file per tab (Computer Name, Site Photographer, LogMeIn, Canfield Capture).
+- `Build-Toolkit-Exe.ps1`: Inlines `src\` into the entry script and builds a single `DeployToolkit.exe` using PS2EXE.
 - `build_bypass.cmd`: Convenience wrapper to run the build script with execution policy bypass.
 - `.github/workflows/build-exe.yml`: Builds EXE on every push and uploads it as an artifact.
 - `.github/workflows/release-exe.yml`: Builds EXE on version tag push and publishes it to a GitHub Release.
