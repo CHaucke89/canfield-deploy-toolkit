@@ -1,9 +1,10 @@
 <#
 .SYNOPSIS
-    Deploy Toolkit: one window with three tabs.
+    Deploy Toolkit: one window with four tabs.
       1) Computer Name - renames the current Windows machine (offers a restart afterwards).
-      2) LogMeIn      - pick a sponsor from the CSV; installs LogMeIn silently with that Deploy ID.
-      3) Canfield Capture Installer - finds setup.exe on connected USB drive(s); installs the chosen one silently.
+      2) Site Photographer - sets the password of the local 'Site Photographer' account.
+      3) LogMeIn      - pick a sponsor from the CSV; installs LogMeIn silently with that Deploy ID.
+      4) Canfield Capture Installer - finds setup.exe on connected USB drive(s); installs the chosen one silently.
 
 .PARAMETER CsvPath
     Sponsor CSV (Sponsor,DeployID). Defaults to sponsors.csv next to the script/exe.
@@ -75,9 +76,10 @@ $tabs.Size     = New-Object System.Drawing.Size(520, 370)
 $form.Controls.Add($tabs)
 
 $tabName = New-Object System.Windows.Forms.TabPage; $tabName.Text = 'Computer Name'
+$tabPhoto = New-Object System.Windows.Forms.TabPage; $tabPhoto.Text = 'Site Photographer'
 $tabLmi = New-Object System.Windows.Forms.TabPage; $tabLmi.Text = 'LogMeIn'
 $tabUsb = New-Object System.Windows.Forms.TabPage; $tabUsb.Text = 'Canfield Capture'
-$tabs.TabPages.Add($tabName); $tabs.TabPages.Add($tabLmi); $tabs.TabPages.Add($tabUsb)
+$tabs.TabPages.Add($tabName); $tabs.TabPages.Add($tabPhoto); $tabs.TabPages.Add($tabLmi); $tabs.TabPages.Add($tabUsb)
 
 $btnClose = New-Object System.Windows.Forms.Button
 $btnClose.Text         = 'Close'
@@ -430,6 +432,52 @@ $btnName.Add_Click({
     if ($restart -eq [System.Windows.Forms.DialogResult]::Yes) {
         try { Restart-Computer -Force -ErrorAction Stop }
         catch { Show-Message "Could not restart the computer:`n$($_.Exception.Message)" 'Error' }
+    }
+})
+
+# =====================================================================
+#  Tab: Site Photographer password
+# =====================================================================
+$photoLabel = New-Object System.Windows.Forms.Label
+$photoLabel.Text     = "New password for the local 'Site Photographer' account:"
+$photoLabel.Location = New-Object System.Drawing.Point(15, 20)
+$photoLabel.AutoSize = $true
+$tabPhoto.Controls.Add($photoLabel)
+
+$photoBox = New-Object System.Windows.Forms.TextBox
+$photoBox.Location = New-Object System.Drawing.Point(15, 45)
+$photoBox.Size     = New-Object System.Drawing.Size(480, 22)
+$tabPhoto.Controls.Add($photoBox)
+
+$photoNote = New-Object System.Windows.Forms.Label
+$photoNote.Text     = 'Symbols, spaces and numbers are removed and the password is converted to lower case.'
+$photoNote.Location = New-Object System.Drawing.Point(15, 72)
+$photoNote.Size     = New-Object System.Drawing.Size(480, 18)
+$tabPhoto.Controls.Add($photoNote)
+
+$btnPhoto = New-Object System.Windows.Forms.Button
+$btnPhoto.Text     = 'Set Password'
+$btnPhoto.Location = New-Object System.Drawing.Point(375, 105)
+$btnPhoto.Size     = New-Object System.Drawing.Size(120, 30)
+$btnPhoto.Enabled  = $false
+$tabPhoto.Controls.Add($btnPhoto)
+
+$photoBox.Add_TextChanged({ $btnPhoto.Enabled = ($photoBox.Text.Trim().Length -gt 0) })
+
+$btnPhoto.Add_Click({
+    $pass = -join ($photoBox.Text.ToLower() -replace '[^a-z]', '')
+    $photoBox.Text = $pass
+    if (-not $pass) {
+        Show-Message 'The password must contain at least one letter.' 'Warning'
+        return
+    }
+    try {
+        $secure = ConvertTo-SecureString $pass -AsPlainText -Force
+        Set-LocalUser -Name 'Site Photographer' -Password $secure -PasswordNeverExpires $true `
+            -UserMayChangePassword $false -ErrorAction Stop
+        Show-Message "Site Photographer password updated to '$pass'." 'Information'
+    } catch {
+        Show-Message "Site Photographer password NOT updated:`n$($_.Exception.Message)" 'Error'
     }
 })
 
