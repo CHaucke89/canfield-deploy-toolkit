@@ -1,7 +1,9 @@
 # Canfield Deploy Toolkit
 
-Windows deployment toolkit for two common tasks in one GUI:
+Windows deployment toolkit for common machine-setup tasks in one GUI:
 
+- Rename the computer (with an optional restart).
+- Set the password of the local `Site Photographer` account.
 - Install LogMeIn using a sponsor-specific Deploy ID from a CSV file.
 - Find and run Canfield Capture `setup.exe` installers from USB drives.
 
@@ -22,7 +24,7 @@ The toolkit can run as a PowerShell script or as a packaged executable.
 - Windows (PowerShell 5.1+ recommended).
 - Administrator rights to install software.
 - Network access to download LogMeIn MSI.
-- Optional: `sponsors.csv` next to script/EXE.
+- Optional: `sponsors.csv` next to script/EXE (needed for the LogMeIn tab unless one was embedded at build time).
 
 ### Local EXE Build
 
@@ -42,7 +44,7 @@ Another Sponsor,987654321
 Behavior:
 
 - If `sponsors.csv` exists beside the script/EXE, it is used.
-- If missing, the EXE can fall back to an embedded CSV snapshot created at build time.
+- If missing, the EXE can fall back to an embedded CSV snapshot created at build time. The snapshot is only embedded when `sponsors.csv` exists next to `Build-Toolkit-Exe.ps1` during the build (it is not committed, so CI builds have no embedded list).
 
 ## Run the Toolkit (Script)
 
@@ -109,6 +111,18 @@ git push origin v1.0.0
 ```
 
 ## How the Toolkit Works
+
+### Computer Name Tab
+
+- Shows the current computer name.
+- Validates the new name (1-15 letters, digits or hyphens; no leading/trailing hyphen; not only digits).
+- Renames via `Rename-Computer` after confirmation, then offers to restart.
+
+### Site Photographer Tab
+
+- Sets the password of the local `Site Photographer` account.
+- The entered password is normalized: symbols, spaces and numbers are removed and letters are lower-cased.
+- The account is set to never expire and the user cannot change the password.
 
 ### LogMeIn Tab
 
