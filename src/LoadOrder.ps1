@@ -5,10 +5,12 @@
     'Lib\Validation.ps1'
     'Lib\Sponsors.ps1'
     'Lib\Usb.ps1'
+    'Lib\CaptureCleanup.ps1'
     'Ui\MainWindow.ps1'
     'Ui\Progress.ps1'
     'Tabs\ComputerName.ps1'
     'Tabs\SitePhotographer.ps1'
     'Tabs\LogMeIn.ps1'
     'Tabs\CanfieldCapture.ps1'
+    'Tabs\CleanupTool.ps1'
 )

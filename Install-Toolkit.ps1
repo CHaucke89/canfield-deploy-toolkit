@@ -1,10 +1,11 @@
 <#
 .SYNOPSIS
-    Deploy Toolkit: one window with four tabs.
+    Deploy Toolkit: one window with five tabs.
       1) Computer Name - renames the current Windows machine (offers a restart afterwards).
       2) Site Photographer - sets the password of the local 'Site Photographer' account.
       3) LogMeIn      - pick a sponsor from the CSV; installs LogMeIn silently with that Deploy ID.
       4) Canfield Capture Installer - finds setup.exe on connected USB drive(s); installs the chosen one silently.
+      5) Cleanup Tool - wipes Canfield Capture site data per version, lets you set the Site ID, expires SSCT passwords.
 
     This file is only the entry point (startup, elevation, loading, show window). The UI and logic live
     in src\ (see src\LoadOrder.ps1); Build-Toolkit-Exe.ps1 inlines those files into the single-file exe.

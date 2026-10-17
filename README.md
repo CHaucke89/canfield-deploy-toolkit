@@ -6,6 +6,7 @@ Windows deployment toolkit for common machine-setup tasks in one GUI:
 - Set the password of the local `Site Photographer` account.
 - Install LogMeIn using a sponsor-specific Deploy ID from a CSV file.
 - Find and run Canfield Capture `setup.exe` installers from USB drives.
+- Clean Canfield Capture site databases and force SSCT users to change passwords.
 
 The toolkit can run as a PowerShell script or as a packaged executable.
 
@@ -15,7 +16,7 @@ The toolkit can run as a PowerShell script or as a packaged executable.
 - `src\LoadOrder.ps1`: Ordered list of source files to load (also used by the build).
 - `src\Lib\`: UI-free helpers (validation, sponsor CSV, USB discovery).
 - `src\Ui\`: Main window and shared progress/message helpers.
-- `src\Tabs\`: One file per tab (Computer Name, Site Photographer, LogMeIn, Canfield Capture).
+- `src\Tabs\`: One file per tab (Computer Name, Site Photographer, LogMeIn, Canfield Capture, Cleanup Tool).
 - `Build-Toolkit-Exe.ps1`: Inlines `src\` into the entry script and builds a single `DeployToolkit.exe` using PS2EXE.
 - `build_bypass.cmd`: Convenience wrapper to run the build script with execution policy bypass.
 - `.github/workflows/build-exe.yml`: Builds EXE on every push and uploads it as an artifact.
@@ -139,6 +140,15 @@ git push origin v1.0.0
 - Scans attached USB drives for folders containing `setup.exe`.
 - Lets you choose installer path and silent switches.
 - Runs installer and reports result or reboot-required codes.
+
+### Cleanup Tool Tab
+
+Ported from the Cleanup Tool in the Canfield Setup Tool (`CST.ps1`).
+
+- Lists `C:\ProgramData\Canfield\Canfield Capture v*` versions, split into "needs cleanup" (a one-character site/PID folder exists under `Databases\*\`) and "already clean". Dirty versions are preselected.
+- After confirmation, for each selected version: deletes `SSCT_System_Data*.sdf`, `Temp`, and everything in `Databases` except `Registered_Users.sdf`; clears `C:\Calibration Report`; removes Vectra calibration data for v3.4.0-v3.5.1; prefixes that version's `DiagLib` logs with `CU-`.
+- Opens each cleaned version's Canfield Capture so the Site ID can be set, and waits for it to close.
+- Finally sets every local `SSCT` group member to change password at next logon.
 
 ## Troubleshooting
 
