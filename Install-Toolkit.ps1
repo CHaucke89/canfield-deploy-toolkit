@@ -6,7 +6,7 @@
       3) Canfield Capture Installer - finds setup.exe on connected USB drive(s); installs the chosen one silently.
 
 .PARAMETER CsvPath
-    Sponsor CSV (Sponsor,DeployID). Defaults to LogMeInDeploy.csv next to the script/exe.
+    Sponsor CSV (Sponsor,DeployID). Defaults to sponsors.csv next to the script/exe.
     If missing, an embedded copy (added by Build-Toolkit-Exe.ps1) is used.
 
 .PARAMETER SilentArgs
@@ -35,7 +35,7 @@ if ($isExe) {
     $scriptPath = if ($PSCommandPath) { $PSCommandPath } else { $MyInvocation.MyCommand.Path }
     $scriptDir  = if ($scriptPath) { Split-Path -Parent $scriptPath } else { (Get-Location).Path }
 }
-if (-not $CsvPath) { $CsvPath = Join-Path $scriptDir 'LogMeInDeploy.csv' }
+if (-not $CsvPath) { $CsvPath = Join-Path $scriptDir 'sponsors.csv' }
 
 # Build-Toolkit-Exe.ps1 replaces the next line with a snapshot of the CSV (fallback copy).
 $EmbeddedCsv = $null # __EMBEDDED_CSV__

@@ -22,7 +22,7 @@ The toolkit can run as a PowerShell script or as a packaged executable.
 - Windows (PowerShell 5.1+ recommended).
 - Administrator rights to install software.
 - Network access to download LogMeIn MSI.
-- Optional: `LogMeInDeploy.csv` next to script/EXE.
+- Optional: `sponsors.csv` next to script/EXE.
 
 ### Local EXE Build
 
@@ -31,7 +31,7 @@ The toolkit can run as a PowerShell script or as a packaged executable.
 
 ## CSV Format
 
-The sponsor file must be named `LogMeInDeploy.csv` and contain headers:
+The sponsor file must be named `sponsors.csv` and contain headers:
 
 ```csv
 Sponsor,DeployID
@@ -41,7 +41,7 @@ Another Sponsor,987654321
 
 Behavior:
 
-- If `LogMeInDeploy.csv` exists beside the script/EXE, it is used.
+- If `sponsors.csv` exists beside the script/EXE, it is used.
 - If missing, the EXE can fall back to an embedded CSV snapshot created at build time.
 
 ## Run the Toolkit (Script)
@@ -55,7 +55,7 @@ powershell -ExecutionPolicy Bypass -File .\Install-Toolkit.ps1
 Optional parameters:
 
 ```powershell
-powershell -ExecutionPolicy Bypass -File .\Install-Toolkit.ps1 -CsvPath .\LogMeInDeploy.csv -SilentArgs '/S /v/qn'
+powershell -ExecutionPolicy Bypass -File .\Install-Toolkit.ps1 -CsvPath .\sponsors.csv -SilentArgs '/S /v/qn'
 ```
 
 Notes:
@@ -125,7 +125,7 @@ git push origin v1.0.0
 ## Troubleshooting
 
 - No sponsors shown:
-  - Check `LogMeInDeploy.csv` exists and has `Sponsor,DeployID` headers.
+  - Check `sponsors.csv` exists and has `Sponsor,DeployID` headers.
 - Build fails on module install:
   - Ensure internet access and PSGallery availability.
 - EXE missing after workflow run:

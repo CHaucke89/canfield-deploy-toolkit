@@ -1,12 +1,12 @@
 <#
 .SYNOPSIS
     Packages Install-Toolkit.ps1 into a single DeployToolkit.exe using PS2EXE (run on Windows).
-    Run from the folder containing Install-Toolkit.ps1 and LogMeInDeploy.csv.
+    Run from the folder containing Install-Toolkit.ps1 and sponsors.csv.
     If blocked by execution policy: powershell -ExecutionPolicy Bypass -File .\Build-Toolkit-Exe.ps1
 #>
 $ErrorActionPreference = 'Stop'
 $src = Join-Path $PSScriptRoot 'Install-Toolkit.ps1'
-$csv = Join-Path $PSScriptRoot 'LogMeInDeploy.csv'
+$csv = Join-Path $PSScriptRoot 'sponsors.csv'
 $tmp = Join-Path $PSScriptRoot 'Install-Toolkit.build.ps1'
 $out = Join-Path $PSScriptRoot 'build\DeployToolkit.exe'
 
@@ -26,7 +26,7 @@ if (Test-Path -LiteralPath $csv) {
     $embed   = "`$EmbeddedCsv = @'`r`n$csvText`r`n'@"
     $content = $content.Replace('$EmbeddedCsv = $null # __EMBEDDED_CSV__', $embed)
 } else {
-    Write-Warning "LogMeInDeploy.csv not found; building without an embedded sponsor list."
+    Write-Warning "sponsors.csv not found; building without an embedded sponsor list."
 }
 Set-Content -LiteralPath $tmp -Value $content -Encoding UTF8
 
