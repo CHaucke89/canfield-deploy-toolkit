@@ -30,7 +30,7 @@ $cleanList.SelectionMode = 'None'
 $tabClean.Controls.Add($cleanList)
 
 $cleanNote = New-Object System.Windows.Forms.Label
-$cleanNote.Text     = "Deletes the selected versions' site data (Registered_Users.sdf is kept), opens each version so the Site ID can be set, then forces SSCT group members to change their password at next logon."
+$cleanNote.Text     = "Deletes the selected versions' site data and opens Canfield Capture to set the Site ID."
 $cleanNote.Location = New-Object System.Drawing.Point(15, 238)
 $cleanNote.Size     = New-Object System.Drawing.Size(480, 48)
 $tabClean.Controls.Add($cleanNote)
@@ -95,7 +95,7 @@ $btnClean.Add_Click({
 
         try {
             Set-SsctPasswordExpired
-            Show-Message 'Cleanup complete. SSCT group members must change their password at next logon.' 'Information'
+            Show-Message 'Cleanup complete.' 'Information'
         } catch {
             Show-Message "Databases cleaned, but SSCT passwords were NOT expired:`n$($_.Exception.Message)" 'Warning'
         }

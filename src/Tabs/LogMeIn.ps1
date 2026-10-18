@@ -6,7 +6,7 @@ $tabLmi = New-Object System.Windows.Forms.TabPage; $tabLmi.Text = 'LogMeIn'
 $sponsors = @(Get-Sponsors $CsvPath $EmbeddedCsv)
 
 $lmiLabel = New-Object System.Windows.Forms.Label
-$lmiLabel.Text     = 'Select the sponsor for this machine:'
+$lmiLabel.Text     = 'Select the sponsor to install LogMeIn for:'
 $lmiLabel.Location = New-Object System.Drawing.Point(15, 20)
 $lmiLabel.AutoSize = $true
 $tabLmi.Controls.Add($lmiLabel)

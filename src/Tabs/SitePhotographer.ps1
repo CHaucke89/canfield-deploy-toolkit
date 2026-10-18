@@ -4,7 +4,7 @@ $tabPhoto = New-Object System.Windows.Forms.TabPage; $tabPhoto.Text = 'Site Phot
 [void]$tabs.TabPages.Add($tabPhoto)
 
 $photoLabel = New-Object System.Windows.Forms.Label
-$photoLabel.Text     = "New password for the local 'Site Photographer' account:"
+$photoLabel.Text     = "New password for 'Site Photographer':"
 $photoLabel.Location = New-Object System.Drawing.Point(15, 20)
 $photoLabel.AutoSize = $true
 $tabPhoto.Controls.Add($photoLabel)

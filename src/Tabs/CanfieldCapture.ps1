@@ -111,7 +111,7 @@ $btnUsb.Add_Click({
 
     Enter-Busy "Starting installer...`n$($choice.Folder)"
     try {
-        $label = "Installing from '{0}'... (running silently, please wait)" -f (Split-Path -Leaf $choice.Folder)
+        $label = "Installing from '{0}' silently, please wait." -f (Split-Path -Leaf $choice.Folder)
         # Normal window style: if an installer ignores the switches and shows UI, the user can see it.
         $code = Invoke-WithProgress $setup $swArgs $choice.Folder 'Normal' $label
         Exit-Busy
