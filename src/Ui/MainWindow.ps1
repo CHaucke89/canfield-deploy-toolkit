@@ -6,6 +6,8 @@ $form.ClientSize      = New-Object System.Drawing.Size(540, 430)
 $form.StartPosition   = 'CenterScreen'
 $form.FormBorderStyle = 'FixedDialog'
 $form.MaximizeBox     = $false
+# Use the exe's embedded icon (set by Build-Toolkit-Exe.ps1) for the window and taskbar.
+if ($isExe) { $form.Icon = [System.Drawing.Icon]::ExtractAssociatedIcon($procPath) }
 
 $tabs = New-Object System.Windows.Forms.TabControl
 $tabs.Location = New-Object System.Drawing.Point(10, 10)

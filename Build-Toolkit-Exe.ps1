@@ -9,6 +9,7 @@ $src = Join-Path $PSScriptRoot 'Install-Toolkit.ps1'
 $csv = Join-Path $PSScriptRoot 'sponsors.csv'
 $tmp = Join-Path $PSScriptRoot 'Install-Toolkit.build.ps1'
 $out = Join-Path $PSScriptRoot 'build\DeployToolkit.exe'
+$icon = Join-Path $PSScriptRoot 'assets\toolkit.ico'
 
 if (-not (Test-Path -LiteralPath (Join-Path $PSScriptRoot 'build'))) {
     New-Item -ItemType Directory -Path (Join-Path $PSScriptRoot 'build') | Out-Null
@@ -44,7 +45,7 @@ Set-Content -LiteralPath $tmp -Value $content -Encoding UTF8
 
 try {
     Invoke-ps2exe -inputFile $tmp -outputFile $out `
-        -noConsole -requireAdmin -STA `
+        -noConsole -requireAdmin -STA -iconFile $icon `
         -title 'Deploy Toolkit' -product 'Deploy Toolkit' -version '1.0.0.0'
 } finally {
     Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
