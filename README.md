@@ -1,4 +1,4 @@
-# Canfield Deploy Toolkit
+# Canfield Deployment Toolkit
 
 Windows deployment toolkit for common machine-setup tasks in one GUI (window title: "Canfield Deployment Toolkit"):
 
