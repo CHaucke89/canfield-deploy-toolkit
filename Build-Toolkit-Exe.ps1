@@ -61,7 +61,7 @@ Set-Content -LiteralPath $tmp -Value $content -Encoding UTF8
 try {
     Invoke-ps2exe -inputFile $tmp -outputFile $out `
         -noConsole -requireAdmin -STA -iconFile $icon `
-        -title 'Deploy Toolkit' -product 'Deploy Toolkit' -version $exeVersion
+        -title 'Canfield Deployment Toolkit' -product 'Canfield Deployment Toolkit' -version $exeVersion
 } finally {
     Remove-Item -LiteralPath $tmp -Force -ErrorAction SilentlyContinue
 }
