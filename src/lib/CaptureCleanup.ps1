@@ -19,7 +19,26 @@ function Get-CaptureVersions {
         })
 }
 
-# Deletes a version's site data. Registered_Users.sdf is kept.
+# Files the cleanup must never delete, wherever they sit under Databases.
+$script:CaptureProtectedFiles = @('Registered_Users.sdf')
+
+# Deletes everything under $Dir except protected files. A folder is removed whole only when nothing
+# protected lives anywhere inside it; otherwise it is emptied around the protected files.
+# Filters by name in the pipeline: Windows PowerShell 5.1 ignores -Exclude when used with -LiteralPath.
+function Remove-CaptureDataExceptProtected([string]$Dir) {
+    foreach ($item in @(Get-ChildItem -LiteralPath $Dir -Force)) {
+        if ($item.PSIsContainer) {
+            $hasProtected = @(Get-ChildItem -LiteralPath $item.FullName -Recurse -File -Force |
+                Where-Object { $script:CaptureProtectedFiles -contains $_.Name }).Count -gt 0
+            if ($hasProtected) { Remove-CaptureDataExceptProtected $item.FullName }
+            else { Remove-Item -LiteralPath $item.FullName -Recurse -Force }
+        } elseif ($script:CaptureProtectedFiles -notcontains $item.Name) {
+            Remove-Item -LiteralPath $item.FullName -Force
+        }
+    }
+}
+
+# Deletes a version's site data. Registered_Users.sdf is always kept.
 function Clear-CaptureDatabase([string]$VersionName) {
     $root = Join-Path $script:CaptureDataRoot $VersionName
     Get-ChildItem -Path (Join-Path $root 'SSCT_System_Data*.sdf') -ErrorAction SilentlyContinue |
@@ -28,8 +47,7 @@ function Clear-CaptureDatabase([string]$VersionName) {
         Remove-Item -LiteralPath (Join-Path $root 'Temp') -Recurse -Force
     }
     if (Test-Path -LiteralPath (Join-Path $root 'Databases')) {
-        Get-ChildItem -LiteralPath (Join-Path $root 'Databases') -Exclude 'Registered_Users.sdf' -Force |
-            Remove-Item -Recurse -Force
+        Remove-CaptureDataExceptProtected (Join-Path $root 'Databases')
     }
     if (Test-Path -Path 'C:\Calibration Report\*.*') {
         Remove-Item -Path 'C:\Calibration Report\*.*' -Recurse -Force

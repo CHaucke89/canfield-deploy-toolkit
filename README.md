@@ -162,7 +162,7 @@ git push origin v1.0.0
 Ported from the Cleanup Tool in the Canfield Setup Tool (`CST.ps1`, not included in this repo).
 
 - Lists `C:\ProgramData\Canfield\Canfield Capture v*` versions, split into "needs cleanup" (a one-character site/PID folder exists under `Databases\*\`) and "already clean". Dirty versions are preselected.
-- After confirmation, for each selected version: deletes `SSCT_System_Data*.sdf`, `Temp`, and everything in `Databases` except `Registered_Users.sdf`; clears `C:\Calibration Report`; removes Vectra calibration data for v3.4.0-v3.5.1; prefixes that version's `DiagLib` logs with `CU-`.
+- After confirmation, for each selected version: deletes `SSCT_System_Data*.sdf`, `Temp`, and everything in `Databases` except `Registered_Users.sdf` (kept at any depth; registered users are never deleted by cleanup); clears `C:\Calibration Report`; removes Vectra calibration data for v3.4.0-v3.5.1; prefixes that version's `DiagLib` logs with `CU-`.
 - Opens each cleaned version's Canfield Capture (`C:\Program Files (x86)\Canfield Scientific Inc\<version>\Canfield Capture.exe`) so the Site ID can be set, and waits for it to close. If that EXE is missing, it warns you to set the Site ID manually.
 - Finally sets every local `SSCT` group member to change password at next logon. If that step fails, it reports that the databases were cleaned but the passwords were not expired.
 
