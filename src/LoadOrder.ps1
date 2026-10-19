@@ -1,16 +1,16 @@
 # Files loaded by Install-Toolkit.ps1, in order (paths relative to src\).
 # Build-Toolkit-Exe.ps1 reads this same list to inline the files into the single-file exe.
-# Tab order in the window follows the order of the Tabs\ entries.
+# Tab order in the window follows the order of the tabs\ entries.
 @(
-    'Lib\Validation.ps1'
-    'Lib\Sponsors.ps1'
-    'Lib\Usb.ps1'
-    'Lib\CaptureCleanup.ps1'
-    'Ui\MainWindow.ps1'
-    'Ui\Progress.ps1'
-    'Tabs\ComputerName.ps1'
-    'Tabs\SitePhotographer.ps1'
-    'Tabs\LogMeIn.ps1'
-    'Tabs\CanfieldCapture.ps1'
-    'Tabs\CleanupTool.ps1'
+    'lib\Validation.ps1'
+    'lib\Sponsors.ps1'
+    'lib\Usb.ps1'
+    'lib\CaptureCleanup.ps1'
+    'ui\MainWindow.ps1'
+    'ui\Progress.ps1'
+    'tabs\ComputerName.ps1'
+    'tabs\SitePhotographer.ps1'
+    'tabs\LogMeIn.ps1'
+    'tabs\CanfieldCapture.ps1'
+    'tabs\CleanupTool.ps1'
 )
