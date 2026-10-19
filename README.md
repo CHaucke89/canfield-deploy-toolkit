@@ -14,9 +14,9 @@ The toolkit can run as a PowerShell script or as a packaged executable (`DeployT
 
 - `Install-Toolkit.ps1`: Entry point (startup, elevation, loads `src\`).
 - `src\LoadOrder.ps1`: Ordered list of source files to load (also used by the build).
-- `src\Lib\`: UI-free helpers (validation, sponsor CSV, USB discovery, Canfield Capture cleanup).
-- `src\Ui\`: Main window and shared progress/message helpers.
-- `src\Tabs\`: One file per tab (Computer Name, Site Photographer, LogMeIn, Canfield Capture, Cleanup Tool).
+- `src\lib\`: UI-free helpers (validation, sponsor CSV, USB discovery, Canfield Capture cleanup).
+- `src\ui\`: Main window and shared progress/message helpers.
+- `src\tabs\`: One file per tab (Computer Name, Site Photographer, LogMeIn, Canfield Capture, Cleanup Tool).
 - `Build-Toolkit-Exe.ps1`: Inlines `src\` into the entry script and builds a single `DeployToolkit.exe` using PS2EXE.
 - `assets\toolkit.ico`: Icon embedded into the EXE (file icon, window and taskbar). Required by the build.
 - `build_bypass.cmd`: Convenience wrapper to run the build script with execution policy bypass (run it from the repo folder).
