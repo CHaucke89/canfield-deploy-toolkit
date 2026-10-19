@@ -29,7 +29,12 @@ jobs:
         run: |
           Set-StrictMode -Version Latest
           $ErrorActionPreference = 'Stop'
-          ./Build-Toolkit-Exe.ps1
+          # Stamp the exe with the tag's version (v1.2.0 -> 1.2.0.0); manual runs off a branch keep the default.
+          if ($env:GITHUB_REF_TYPE -eq 'tag') {
+            ./Build-Toolkit-Exe.ps1 -Version $env:GITHUB_REF_NAME
+          } else {
+            ./Build-Toolkit-Exe.ps1
+          }
 
       - name: Create GitHub Release and upload EXE
         uses: softprops/action-gh-release@v2
