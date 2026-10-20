@@ -1,7 +1,7 @@
 <#
 .SYNOPSIS
     Deploy Toolkit: one window with six tabs.
-      1) Computer         - renames the machine, sets the 'Site Photographer' password, opens Date/Time and Windows Update.
+      1) Computer         - renames the machine, sets the 'Site Photographer' password, sets the time zone, syncs the clock, opens Windows Update.
       2) Users            - creates, resets and deletes SSCT site users; creates the SharedAdmin account.
       3) Remote Access    - installs LogMeIn for a sponsor from the CSV, enrolls in Resolve MDM, manages the Canfield scripts.
       4) Canfield Capture - finds setup.exe on connected USB drive(s); installs the chosen one silently.

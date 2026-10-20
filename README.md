@@ -151,7 +151,7 @@ git push origin v1.0.0
 
 - Computer name: shows the current name, validates the new one (1-15 letters, digits or hyphens; no leading/trailing hyphen; not only digits), renames via `Rename-Computer` after confirmation, then offers to restart.
 - Site Photographer password: the entered password is normalized (symbols, spaces and numbers removed, letters lower-cased); the account is set to never expire and the user cannot change the password.
-- Date, time and time zone: shows the current values and opens the Date and Time settings.
+- Date, time and time zone: picking a time zone from the dropdown sets it right away (`Set-TimeZone`). **Sync Time** starts the Windows Time service if needed and syncs the clock with the time server (`w32tm /resync /force`).
 - Windows Update: opens Windows Update in Settings.
 
 ### Users Tab

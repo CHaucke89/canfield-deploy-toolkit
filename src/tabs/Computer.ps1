@@ -113,30 +113,71 @@ $btnPhoto.Add_Click({
 # --- Date, time and time zone ---
 $grpTime = New-Group $tabComputer 'Date, time and time zone' 212 75
 
+$tzLabel = New-Object System.Windows.Forms.Label
+$tzLabel.Text     = 'Time zone:'
+$tzLabel.Location = New-Object System.Drawing.Point(12, 24)
+$tzLabel.AutoSize = $true
+$grpTime.Controls.Add($tzLabel)
+
+$tzCombo = New-Object System.Windows.Forms.ComboBox
+$tzCombo.DropDownStyle = 'DropDownList'
+$tzCombo.DisplayMember = 'DisplayName'
+$tzCombo.Location      = New-Object System.Drawing.Point(85, 20)
+$tzCombo.Size          = New-Object System.Drawing.Size(367, 24)
+foreach ($tz in @(Get-TimeZone -ListAvailable)) { [void]$tzCombo.Items.Add($tz) }
+$grpTime.Controls.Add($tzCombo)
+
 $timeInfo = New-Object System.Windows.Forms.Label
-$timeInfo.Location = New-Object System.Drawing.Point(12, 22)
-$timeInfo.Size     = New-Object System.Drawing.Size(440, 40)
+$timeInfo.Location = New-Object System.Drawing.Point(12, 50)
+$timeInfo.Size     = New-Object System.Drawing.Size(440, 18)
 $grpTime.Controls.Add($timeInfo)
 
-$btnTime = New-Object System.Windows.Forms.Button
-$btnTime.Text     = 'Open Settings'
-$btnTime.Location = New-Object System.Drawing.Point(460, 26)
-$btnTime.Size     = New-Object System.Drawing.Size(118, 28)
-$grpTime.Controls.Add($btnTime)
+$btnSyncTime = New-Object System.Windows.Forms.Button
+$btnSyncTime.Text     = 'Sync Time'
+$btnSyncTime.Location = New-Object System.Drawing.Point(460, 18)
+$btnSyncTime.Size     = New-Object System.Drawing.Size(118, 28)
+$grpTime.Controls.Add($btnSyncTime)
 
+# Shows the current time zone in the dropdown without triggering a change.
+$script:tzLoading = $false
 function Update-TimeInfo {
-    $timeInfo.Text = "Time zone: $((Get-TimeZone).DisplayName)`nDate and time: $(Get-Date -Format 'dd MMM yyyy HH:mm')"
+    [System.TimeZoneInfo]::ClearCachedData()
+    $current = (Get-TimeZone).Id
+    $script:tzLoading = $true
+    for ($i = 0; $i -lt $tzCombo.Items.Count; $i++) {
+        if ($tzCombo.Items[$i].Id -eq $current) { $tzCombo.SelectedIndex = $i; break }
+    }
+    $script:tzLoading = $false
+    $timeInfo.Text = "Date and time: $(Get-Date -Format 'dd MMM yyyy HH:mm')"
 }
 Update-TimeInfo
 
-$btnTime.Add_Click({
-    Enter-Busy 'Waiting for Date and Time settings to close...'
+# Picking a time zone sets it right away.
+$tzCombo.Add_SelectedIndexChanged({
+    if ($script:tzLoading -or $null -eq $tzCombo.SelectedItem) { return }
     try {
-        [void](Invoke-WithProgress 'rundll32.exe' 'shell32.dll,Control_RunDLL timedate.cpl' $null 'Normal' 'Waiting for Date and Time settings to close...')
+        Set-TimeZone -Id $tzCombo.SelectedItem.Id -ErrorAction Stop
     } catch {
-        Show-Message "Could not open Date and Time settings:`n$($_.Exception.Message)" 'Error'
+        Show-Message "Time zone NOT changed:`n$($_.Exception.Message)" 'Error'
     }
-    Exit-Busy
+    Update-TimeInfo
+})
+
+# Syncs the clock with the Windows time server (starts the Windows Time service if needed).
+$btnSyncTime.Add_Click({
+    Enter-Busy 'Synchronizing the clock...'
+    try {
+        $svc = Get-Service -Name W32Time -ErrorAction Stop
+        if ($svc.StartType -eq 'Disabled') { Set-Service -Name W32Time -StartupType Manual -ErrorAction Stop }
+        if ($svc.Status -ne 'Running') { Start-Service -Name W32Time -ErrorAction Stop }
+        $code = Invoke-WithProgress 'w32tm.exe' '/resync /force' $null 'Hidden' 'Synchronizing the clock...'
+        Exit-Busy
+        if ($code -eq 0) { Show-Message 'Clock synchronized with the time server.' 'Information' }
+        else { Show-Message "Clock NOT synchronized (w32tm exit code $code). Check the network connection and try again." 'Error' }
+    } catch {
+        Exit-Busy
+        Show-Message "Clock NOT synchronized:`n$($_.Exception.Message)" 'Error'
+    }
     Update-TimeInfo
 })
 
