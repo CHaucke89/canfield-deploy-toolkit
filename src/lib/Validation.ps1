@@ -9,3 +9,11 @@ function Test-ComputerName([string]$Name) {
 function ConvertTo-PhotographerPassword([string]$Text) {
     return ($Text.ToLower() -replace '[^a-z]', '')
 }
+
+# Site user names: first initial + last name, letters only, lower case (Jane O'Neil -> joneil).
+function ConvertTo-SiteUsername([string]$First, [string]$Last) {
+    $f = $First -replace '[^A-Za-z]', ''
+    $l = $Last -replace '[^A-Za-z]', ''
+    if (-not $f -or -not $l) { return '' }
+    return ($f.Substring(0, 1) + $l).ToLower()
+}

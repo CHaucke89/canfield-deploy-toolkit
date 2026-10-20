@@ -65,3 +65,49 @@ function Invoke-WithProgress([string]$file, [string]$arguments, [string]$workDir
     }
     return $proc.ExitCode
 }
+
+# Small modal prompt for one line of text. Returns the trimmed text, or $null when cancelled.
+function Read-Text([string]$Prompt, [string]$Default) {
+    $dlg = New-Object System.Windows.Forms.Form
+    $dlg.Text            = $appTitle
+    $dlg.ClientSize      = New-Object System.Drawing.Size(380, 120)
+    $dlg.StartPosition   = 'CenterParent'
+    $dlg.FormBorderStyle = 'FixedDialog'
+    $dlg.MaximizeBox     = $false
+    $dlg.MinimizeBox     = $false
+    $dlg.ShowInTaskbar   = $false
+
+    $lbl = New-Object System.Windows.Forms.Label
+    $lbl.Text     = $Prompt
+    $lbl.Location = New-Object System.Drawing.Point(12, 10)
+    $lbl.Size     = New-Object System.Drawing.Size(356, 36)
+    $dlg.Controls.Add($lbl)
+
+    $box = New-Object System.Windows.Forms.TextBox
+    $box.Text     = $Default
+    $box.Location = New-Object System.Drawing.Point(12, 50)
+    $box.Size     = New-Object System.Drawing.Size(356, 22)
+    $dlg.Controls.Add($box)
+
+    $ok = New-Object System.Windows.Forms.Button
+    $ok.Text         = 'OK'
+    $ok.Location     = New-Object System.Drawing.Point(212, 84)
+    $ok.Size         = New-Object System.Drawing.Size(75, 26)
+    $ok.DialogResult = [System.Windows.Forms.DialogResult]::OK
+    $dlg.Controls.Add($ok)
+    $dlg.AcceptButton = $ok
+
+    $cancel = New-Object System.Windows.Forms.Button
+    $cancel.Text         = 'Cancel'
+    $cancel.Location     = New-Object System.Drawing.Point(293, 84)
+    $cancel.Size         = New-Object System.Drawing.Size(75, 26)
+    $cancel.DialogResult = [System.Windows.Forms.DialogResult]::Cancel
+    $dlg.Controls.Add($cancel)
+    $dlg.CancelButton = $cancel
+
+    $result = $dlg.ShowDialog($form)
+    $text = $box.Text.Trim()
+    $dlg.Dispose()
+    if ($result -ne [System.Windows.Forms.DialogResult]::OK) { return $null }
+    return $text
+}

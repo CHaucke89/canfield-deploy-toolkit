@@ -74,3 +74,45 @@ function Set-SsctPasswordExpired {
         $usr.SetInfo()
     }
 }
+
+# Installed Canfield Capture programs (version folders under Program Files that contain the exe).
+function Get-CaptureInstalls {
+    if (-not (Test-Path -LiteralPath $script:CaptureProgramRoot)) { return @() }
+    return @(Get-ChildItem -LiteralPath $script:CaptureProgramRoot -Directory -Filter 'Canfield Capture v*' -ErrorAction SilentlyContinue |
+        Where-Object { Test-Path -LiteralPath (Join-Path $_.FullName 'Canfield Capture.exe') } |
+        Sort-Object Name | ForEach-Object {
+            [pscustomobject]@{
+                Name    = $_.Name
+                Display = $_.Name -replace '^Canfield Capture ', 'CC '
+                Exe     = Join-Path $_.FullName 'Canfield Capture.exe'
+            }
+        })
+}
+
+# Version ('v3.6.0') of a Canfield Capture installer folder: from the folder name, else its path,
+# else setup.exe's product version. $null when none is found.
+function Get-InstallerVersion([string]$Folder) {
+    foreach ($text in @((Split-Path -Leaf $Folder), $Folder)) {
+        if ($text -match 'v?(\d+\.\d+\.\d+)') { return 'v' + $Matches[1] }
+    }
+    $pv = (Get-Item -LiteralPath (Join-Path $Folder 'setup.exe') -ErrorAction SilentlyContinue).VersionInfo.ProductVersion
+    if ($pv -match '(\d+\.\d+\.\d+)') { return 'v' + $Matches[1] }
+    return $null
+}
+
+# Copies Registered_Users.sdf from the first listed version that has one to the versions that have none,
+# so every version knows the site's users. An existing Registered_Users.sdf is never overwritten.
+# Returns the names of the versions it copied to.
+function Copy-RegisteredUsers([string[]]$VersionNames) {
+    $files  = @($VersionNames | ForEach-Object { Join-Path $script:CaptureDataRoot "$_\Databases\Registered_Users.sdf" })
+    $source = $files | Where-Object { Test-Path -LiteralPath $_ } | Select-Object -First 1
+    if (-not $source) { return @() }
+    $copied = @()
+    for ($i = 0; $i -lt $files.Count; $i++) {
+        if (Test-Path -LiteralPath $files[$i]) { continue }
+        New-Item -ItemType Directory -Force -Path (Split-Path -Parent $files[$i]) | Out-Null
+        Copy-Item -LiteralPath $source -Destination $files[$i] -ErrorAction Stop
+        $copied += $VersionNames[$i]
+    }
+    return $copied
+}

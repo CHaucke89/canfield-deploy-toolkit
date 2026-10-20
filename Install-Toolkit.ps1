@@ -1,11 +1,13 @@
 <#
 .SYNOPSIS
-    Deploy Toolkit: one window with five tabs.
-      1) Computer Name - renames the current Windows machine (offers a restart afterwards).
-      2) Site Photographer - sets the password of the local 'Site Photographer' account.
-      3) LogMeIn      - pick a sponsor from the CSV; installs LogMeIn silently with that Deploy ID.
-      4) Canfield Capture Installer - finds setup.exe on connected USB drive(s); installs the chosen one silently.
-      5) Cleanup Tool - wipes Canfield Capture site data per version, lets you set the Site ID, expires SSCT passwords.
+    Deploy Toolkit: one window with seven tabs.
+      1) Computer         - renames the machine, sets the 'Site Photographer' password, sets the time zone, syncs the clock, opens Windows Update, shows BitLocker status.
+      2) Remote Access    - installs LogMeIn for a sponsor from the CSV, enrolls in Resolve MDM.
+      3) Canfield Capture - finds setup.exe on connected USB drive(s); installs the chosen one silently.
+      4) Cleanup Tool     - wipes Canfield Capture site data per version, sets Site IDs, expires SSCT passwords.
+      5) Summary          - machine status and installed protocols; saves a QC report.
+      6) Users            - creates, resets and deletes SSCT site users; creates the SharedAdmin account.
+      7) Scripts          - installs and turns on/off the Canfield scripts (Reboot, BGInfo, Windows Update).
 
     This file is only the entry point (startup, elevation, loading, show window). The UI and logic live
     in src\ (see src\LoadOrder.ps1); Build-Toolkit-Exe.ps1 inlines those files into the single-file exe.
@@ -15,7 +17,7 @@
     If missing, an embedded copy (added by Build-Toolkit-Exe.ps1) is used.
 
 .PARAMETER SilentArgs
-    Default silent switches for Canfield Capture installers (editable in the window).
+    Silent switches for Canfield Capture installers (not shown in the window).
     Common: /S (NSIS), /VERYSILENT /NORESTART (Inno), /quiet /norestart (WiX Burn), /s /v"/qn" (InstallShield).
 #>
 [CmdletBinding()]
