@@ -13,8 +13,8 @@
     'tabs\Computer.ps1'
     'tabs\RemoteAccess.ps1'
     'tabs\CanfieldCapture.ps1'
+    'tabs\Users.ps1'
     'tabs\CleanupTool.ps1'
     'tabs\Summary.ps1'
-    'tabs\Users.ps1'
     'tabs\Scripts.ps1'
 )
