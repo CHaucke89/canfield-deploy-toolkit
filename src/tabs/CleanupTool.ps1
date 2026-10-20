@@ -11,42 +11,48 @@ $tabClean.Controls.Add($cleanDirtyLabel)
 
 $dirtyList = New-Object System.Windows.Forms.ListBox
 $dirtyList.Location      = New-Object System.Drawing.Point(15, 38)
-$dirtyList.Size          = New-Object System.Drawing.Size(235, 190)
+$dirtyList.Size          = New-Object System.Drawing.Size(285, 270)
 $dirtyList.SelectionMode = 'MultiExtended'
 $dirtyList.DisplayMember = 'Display'
 $tabClean.Controls.Add($dirtyList)
 
 $cleanCleanLabel = New-Object System.Windows.Forms.Label
 $cleanCleanLabel.Text     = 'Already clean:'
-$cleanCleanLabel.Location = New-Object System.Drawing.Point(260, 15)
+$cleanCleanLabel.Location = New-Object System.Drawing.Point(310, 15)
 $cleanCleanLabel.AutoSize = $true
 $tabClean.Controls.Add($cleanCleanLabel)
 
 $cleanList = New-Object System.Windows.Forms.ListBox
-$cleanList.Location      = New-Object System.Drawing.Point(260, 38)
-$cleanList.Size          = New-Object System.Drawing.Size(235, 190)
+$cleanList.Location      = New-Object System.Drawing.Point(310, 38)
+$cleanList.Size          = New-Object System.Drawing.Size(285, 270)
 $cleanList.DisplayMember = 'Display'
 $cleanList.SelectionMode = 'None'
 $tabClean.Controls.Add($cleanList)
 
 $cleanNote = New-Object System.Windows.Forms.Label
-$cleanNote.Text     = "Deletes the selected versions' site data and opens Canfield Capture to set the Site ID."
-$cleanNote.Location = New-Object System.Drawing.Point(15, 238)
-$cleanNote.Size     = New-Object System.Drawing.Size(480, 48)
+$cleanNote.Text     = "Clean Selected deletes the selected versions' site data (registered users are kept) and opens Canfield Capture to set the Site ID. Set Site IDs opens every installed version so you can set its Site ID."
+$cleanNote.Location = New-Object System.Drawing.Point(15, 318)
+$cleanNote.Size     = New-Object System.Drawing.Size(580, 36)
 $tabClean.Controls.Add($cleanNote)
 
 $btnRefresh = New-Object System.Windows.Forms.Button
 $btnRefresh.Text     = 'Refresh'
-$btnRefresh.Location = New-Object System.Drawing.Point(15, 300)
+$btnRefresh.Location = New-Object System.Drawing.Point(15, 385)
 $btnRefresh.Size     = New-Object System.Drawing.Size(90, 30)
 $tabClean.Controls.Add($btnRefresh)
 
 $btnClean = New-Object System.Windows.Forms.Button
 $btnClean.Text     = 'Clean Selected'
-$btnClean.Location = New-Object System.Drawing.Point(375, 300)
+$btnClean.Location = New-Object System.Drawing.Point(475, 385)
 $btnClean.Size     = New-Object System.Drawing.Size(120, 30)
 $btnClean.Enabled  = $false
 $tabClean.Controls.Add($btnClean)
+
+$btnSiteIds = New-Object System.Windows.Forms.Button
+$btnSiteIds.Text     = 'Set Site IDs'
+$btnSiteIds.Location = New-Object System.Drawing.Point(115, 385)
+$btnSiteIds.Size     = New-Object System.Drawing.Size(110, 30)
+$tabClean.Controls.Add($btnSiteIds)
 
 function Update-CleanupLists {
     $dirtyList.Items.Clear()
@@ -104,4 +110,44 @@ $btnClean.Add_Click({
         Show-Message "Cleanup failed:`n$($_.Exception.Message)" 'Error'
     }
     Update-CleanupLists
+})
+
+# Opens every installed version so the Site ID can be set. First copies Registered_Users.sdf to versions
+# that have none (never overwriting one), so all versions know the site's users.
+$btnSiteIds.Add_Click({
+    $installs = @(Get-CaptureInstalls)
+    if ($installs.Count -eq 0) {
+        Show-Message "No Canfield Capture installation found under:`n$script:CaptureProgramRoot" 'Warning'
+        return
+    }
+    $names = ($installs | ForEach-Object { $_.Display }) -join "`n"
+    $confirm = [System.Windows.Forms.MessageBox]::Show($form,
+        "Open each version in turn to set its Site ID?`n$names`n`nVersions without registered users get a copy from another version. Existing registered users are never replaced.",
+        $appTitle, 'YesNo', 'Question')
+    if ($confirm -ne [System.Windows.Forms.DialogResult]::Yes) { return }
+
+    $copied = @()
+    try {
+        $copied = @(Copy-RegisteredUsers @($installs | ForEach-Object { $_.Name }))
+    } catch {
+        Show-Message "Could not copy registered users:`n$($_.Exception.Message)" 'Warning'
+    }
+    foreach ($v in $installs) {
+        Show-Message "Set the Site ID in $($v.Display), then close it.`nClick OK to open it." 'Information'
+        Enter-Busy "Waiting for $($v.Display) to close..."
+        try {
+            [void](Invoke-WithProgress $v.Exe $null (Split-Path -Parent $v.Exe) 'Normal' "Waiting for $($v.Display) to close...")
+        } catch {
+            Exit-Busy
+            Show-Message "Could not open $($v.Display):`n$($_.Exception.Message)" 'Error'
+            continue
+        }
+        Exit-Busy
+    }
+    Update-CleanupLists
+    $done = 'Site IDs done.'
+    if ($copied.Count -gt 0) {
+        $done += "`nRegistered users were copied to: " + (($copied -replace '^Canfield Capture ', 'CC ') -join ', ')
+    }
+    Show-Message $done 'Information'
 })

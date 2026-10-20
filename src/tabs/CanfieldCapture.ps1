@@ -12,31 +12,31 @@ $tabUsb.Controls.Add($btnScan)
 $usbInfo = New-Object System.Windows.Forms.Label
 $usbInfo.Text     = 'Click Scan USB to look for setup.exe.'
 $usbInfo.Location = New-Object System.Drawing.Point(115, 18)
-$usbInfo.Size     = New-Object System.Drawing.Size(380, 18)
+$usbInfo.Size     = New-Object System.Drawing.Size(480, 18)
 $tabUsb.Controls.Add($usbInfo)
 
 $list = New-Object System.Windows.Forms.ListBox
 $list.Location      = New-Object System.Drawing.Point(15, 48)
-$list.Size          = New-Object System.Drawing.Size(480, 200)
+$list.Size          = New-Object System.Drawing.Size(580, 280)
 $list.HorizontalScrollbar = $true
 $list.DisplayMember = 'Display'
 $tabUsb.Controls.Add($list)
 
 $argLabel = New-Object System.Windows.Forms.Label
 $argLabel.Text     = 'Silent install switches (leave default values if unsure):'
-$argLabel.Location = New-Object System.Drawing.Point(15, 260)
+$argLabel.Location = New-Object System.Drawing.Point(15, 340)
 $argLabel.AutoSize = $true
 $tabUsb.Controls.Add($argLabel)
 
 $argBox = New-Object System.Windows.Forms.TextBox
 $argBox.Text     = $SilentArgs
-$argBox.Location = New-Object System.Drawing.Point(15, 282)
-$argBox.Size     = New-Object System.Drawing.Size(480, 22)
+$argBox.Location = New-Object System.Drawing.Point(15, 362)
+$argBox.Size     = New-Object System.Drawing.Size(580, 22)
 $tabUsb.Controls.Add($argBox)
 
 $btnUsb = New-Object System.Windows.Forms.Button
 $btnUsb.Text     = 'Install Selected'
-$btnUsb.Location = New-Object System.Drawing.Point(375, 315)
+$btnUsb.Location = New-Object System.Drawing.Point(475, 390)
 $btnUsb.Size     = New-Object System.Drawing.Size(120, 30)
 $btnUsb.Enabled  = $false
 $tabUsb.Controls.Add($btnUsb)
@@ -107,6 +107,14 @@ $btnUsb.Add_Click({
     if (-not (Test-Path -LiteralPath $setup)) {
         Show-Message "Installer is no longer available:`n$setup`nWas the USB drive removed?" 'Error'
         return
+    }
+    $installed = @(Get-CaptureInstalls)
+    if ($installed.Count -gt 0) {
+        $names = ($installed | ForEach-Object { $_.Display }) -join ', '
+        $again = [System.Windows.Forms.MessageBox]::Show($form,
+            "Canfield Capture is already installed ($names).`nInstall '$(Split-Path -Leaf $choice.Folder)' as well?",
+            $appTitle, 'YesNo', 'Question')
+        if ($again -ne [System.Windows.Forms.DialogResult]::Yes) { return }
     }
 
     Enter-Busy "Starting installer...`n$($choice.Folder)"
