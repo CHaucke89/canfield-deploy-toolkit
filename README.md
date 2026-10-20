@@ -153,6 +153,7 @@ git push origin v1.0.0
 - Site Photographer password: the entered password is normalized (symbols, spaces and numbers removed, letters lower-cased); the account is set to never expire and the user cannot change the password.
 - Date, time and time zone: picking a time zone from the dropdown sets it right away (`Set-TimeZone`). **Sync Time** starts the Windows Time service if needed and syncs the clock with the time server (`w32tm /resync /force`).
 - Windows Update: opens Windows Update in Settings.
+- BitLocker Encryption Status: shows whether the system drive is encrypted (green), encrypting or decrypting with the percentage done (amber, refreshed every 10 seconds while the tab is open), or not encrypted / missing a recovery key (red).
 
 ### Users Tab
 

@@ -201,6 +201,38 @@ $btnUpdate.Add_Click({
     catch { Show-Message "Could not open Windows Update:`n$($_.Exception.Message)" 'Error' }
 })
 
+# --- BitLocker ---
+$grpBitLocker = New-Group $tabComputer 'BitLocker Encryption Status' 366 52
+
+$bitLockerInfo = New-Object System.Windows.Forms.Label
+$bitLockerInfo.Location = New-Object System.Drawing.Point(12, 24)
+$bitLockerInfo.Size     = New-Object System.Drawing.Size(440, 18)
+$grpBitLocker.Controls.Add($bitLockerInfo)
+
+$btnBitLocker = New-Object System.Windows.Forms.Button
+$btnBitLocker.Text     = 'Refresh'
+$btnBitLocker.Location = New-Object System.Drawing.Point(460, 17)
+$btnBitLocker.Size     = New-Object System.Drawing.Size(118, 28)
+$grpBitLocker.Controls.Add($btnBitLocker)
+
+# While the drive is encrypting or decrypting, the percentage refreshes every 10 seconds on this tab.
+$bitLockerTimer = New-Object System.Windows.Forms.Timer
+$bitLockerTimer.Interval = 10000
+
+function Update-BitLockerInfo {
+    $status = Get-BitLockerSummary
+    $bitLockerInfo.Text = "Drive ${env:SystemDrive} $status"
+    $bitLockerInfo.ForeColor = if ($status -eq 'Encrypted') { [System.Drawing.Color]::ForestGreen }
+        elseif ($status -match '^(Encrypting|Decrypting)') { [System.Drawing.Color]::DarkGoldenrod }
+        else { [System.Drawing.Color]::Firebrick }
+    $bitLockerTimer.Enabled = ($status -match '^(Encrypting|Decrypting)') -and ($tabs.SelectedTab -eq $tabComputer)
+}
+Update-BitLockerInfo
+
+$btnBitLocker.Add_Click({ Update-BitLockerInfo })
+$bitLockerTimer.Add_Tick({ Update-BitLockerInfo })
+
 $tabs.Add_SelectedIndexChanged({
-    if ($tabs.SelectedTab -eq $tabComputer) { Update-TimeInfo }
+    if ($tabs.SelectedTab -eq $tabComputer) { Update-TimeInfo; Update-BitLockerInfo }
+    else { $bitLockerTimer.Enabled = $false }
 })
