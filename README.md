@@ -85,7 +85,7 @@ Notes:
 
 - The script self-elevates to admin when needed.
 - The custom window/taskbar icon only appears in the EXE; the script shows the standard PowerShell icon.
-- Default Canfield silent args are `/S /v/qn` and can be edited in the UI.
+- Canfield Capture installers run with the silent switches `/S /v/qn`. They are no longer editable in the window; pass `-SilentArgs` when running the script to override them.
 
 ## Build EXE Locally
 
@@ -163,7 +163,8 @@ git push origin v1.0.0
 ### Canfield Capture Tab
 
 - Scans attached USB drives for folders containing `setup.exe`. The scan runs automatically the first time the tab is opened, can be cancelled, and can be repeated with **Scan USB**.
-- Lets you choose installer path and silent switches.
+- Lets you choose the installer folder; it runs silently with `/S /v/qn`.
+- **Open Response Code Generator** opens `ResponseCodeGenerator.exe` found on the USB drive during the scan (greyed out when none was found).
 - Asks first if a version of Canfield Capture is already installed.
 - Runs installer and reports result or reboot-required codes.
 
@@ -210,4 +211,4 @@ Ported from the Cleanup Tool in the Canfield Setup Tool (`CST.ps1`, not included
 - EXE missing after workflow run:
   - Check workflow logs and confirm `build/DeployToolkit.exe` was produced.
 - Canfield install returns non-zero exit code:
-  - Try different silent switches for that installer package type.
+  - Run that installer's `setup.exe` from the USB drive manually.

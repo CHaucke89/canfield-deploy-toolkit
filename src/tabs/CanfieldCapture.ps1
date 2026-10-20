@@ -17,22 +17,17 @@ $tabUsb.Controls.Add($usbInfo)
 
 $list = New-Object System.Windows.Forms.ListBox
 $list.Location      = New-Object System.Drawing.Point(15, 48)
-$list.Size          = New-Object System.Drawing.Size(580, 280)
+$list.Size          = New-Object System.Drawing.Size(580, 330)
 $list.HorizontalScrollbar = $true
 $list.DisplayMember = 'Display'
 $tabUsb.Controls.Add($list)
 
-$argLabel = New-Object System.Windows.Forms.Label
-$argLabel.Text     = 'Silent install switches (leave default values if unsure):'
-$argLabel.Location = New-Object System.Drawing.Point(15, 340)
-$argLabel.AutoSize = $true
-$tabUsb.Controls.Add($argLabel)
-
-$argBox = New-Object System.Windows.Forms.TextBox
-$argBox.Text     = $SilentArgs
-$argBox.Location = New-Object System.Drawing.Point(15, 362)
-$argBox.Size     = New-Object System.Drawing.Size(580, 22)
-$tabUsb.Controls.Add($argBox)
+$btnRcg = New-Object System.Windows.Forms.Button
+$btnRcg.Text     = 'Open Response Code Generator'
+$btnRcg.Location = New-Object System.Drawing.Point(15, 390)
+$btnRcg.Size     = New-Object System.Drawing.Size(200, 30)
+$btnRcg.Enabled  = $false
+$tabUsb.Controls.Add($btnRcg)
 
 $btnUsb = New-Object System.Windows.Forms.Button
 $btnUsb.Text     = 'Install Selected'
@@ -42,11 +37,14 @@ $btnUsb.Enabled  = $false
 $tabUsb.Controls.Add($btnUsb)
 
 $script:usbScanned = $false
+$script:responseCodeGenerator = $null   # ResponseCodeGenerator.exe found by the last scan
 
 function Invoke-UsbScan {
     $script:usbScanned = $true
     $list.Items.Clear()
     $btnUsb.Enabled = $false
+    $btnRcg.Enabled = $false
+    $script:responseCodeGenerator = $null
 
     Enter-Busy "Looking for USB drives..." $true
     $roots = Get-UsbDriveRoots
@@ -69,6 +67,8 @@ function Invoke-UsbScan {
         else { [System.Windows.Forms.Application]::DoEvents() }
         try {
             if ([System.IO.File]::Exists((Join-Path $dir 'setup.exe'))) { $found.Add($dir) }
+            $rcg = Join-Path $dir 'ResponseCodeGenerator.exe'
+            if (-not $script:responseCodeGenerator -and [System.IO.File]::Exists($rcg)) { $script:responseCodeGenerator = $rcg }
             foreach ($sub in [System.IO.Directory]::EnumerateDirectories($dir)) {
                 if ($skipNames -contains (Split-Path -Leaf $sub)) { continue }
                 # don't follow junctions/symlinks (avoids loops)
@@ -80,6 +80,7 @@ function Invoke-UsbScan {
     $cancelled = $script:cancelRequested
     Exit-Busy
 
+    $btnRcg.Enabled = [bool]$script:responseCodeGenerator
     if ($cancelled) { $usbInfo.Text = 'Scan cancelled.'; return }
     if ($found.Count -eq 0) { $usbInfo.Text = 'No installer found on the USB drive.'; return }
 
@@ -102,7 +103,6 @@ $btnUsb.Add_Click({
     $choice = $list.SelectedItem
     if ($null -eq $choice) { return }
     $setup  = Join-Path $choice.Folder 'setup.exe'
-    $swArgs = $argBox.Text.Trim()
 
     if (-not (Test-Path -LiteralPath $setup)) {
         Show-Message "Installer is no longer available:`n$setup`nWas the USB drive removed?" 'Error'
@@ -121,15 +121,26 @@ $btnUsb.Add_Click({
     try {
         $label = "Installing from '{0}' silently, please wait." -f (Split-Path -Leaf $choice.Folder)
         # Normal window style: if an installer ignores the switches and shows UI, the user can see it.
-        $code = Invoke-WithProgress $setup $swArgs $choice.Folder 'Normal' $label
+        $code = Invoke-WithProgress $setup $SilentArgs $choice.Folder 'Normal' $label
         Exit-Busy
         switch ($code) {
             0       { Show-Message "Installation completed successfully." 'Information' }
             { $_ -in 1641, 3010 } { Show-Message "Installation completed. A reboot is required to finish." 'Information' }
-            default { Show-Message "The installer exited with code $code.`nIf nothing was installed, the silent switches ('$swArgs') may not suit this installer." 'Warning' }
+            default { Show-Message "The installer exited with code $code.`nIf nothing was installed, run setup.exe from the USB drive manually." 'Warning' }
         }
     } catch {
         Exit-Busy
         Show-Message "Could not run the installer:`n$($_.Exception.Message)" 'Error'
     }
+})
+
+$btnRcg.Add_Click({
+    $exe = $script:responseCodeGenerator
+    if (-not $exe -or -not (Test-Path -LiteralPath $exe)) {
+        $btnRcg.Enabled = $false
+        Show-Message "ResponseCodeGenerator.exe was not found on the USB drive.`nInsert the drive and click Scan USB." 'Warning'
+        return
+    }
+    try { Start-Process -FilePath $exe -WorkingDirectory (Split-Path -Parent $exe) }
+    catch { Show-Message "Could not open the Response Code Generator:`n$($_.Exception.Message)" 'Error' }
 })

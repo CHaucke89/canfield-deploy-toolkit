@@ -17,7 +17,7 @@
     If missing, an embedded copy (added by Build-Toolkit-Exe.ps1) is used.
 
 .PARAMETER SilentArgs
-    Default silent switches for Canfield Capture installers (editable in the window).
+    Silent switches for Canfield Capture installers (not shown in the window).
     Common: /S (NSIS), /VERYSILENT /NORESTART (Inno), /quiet /norestart (WiX Burn), /s /v"/qn" (InstallShield).
 #>
 [CmdletBinding()]
