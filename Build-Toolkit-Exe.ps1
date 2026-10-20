@@ -1,6 +1,6 @@
 <#
 .SYNOPSIS
-    Packages Install-Toolkit.ps1 plus the src\ files (inlined) into a single DeployToolkit.exe using PS2EXE (run on Windows).
+    Packages Install-Toolkit.ps1 plus the src\ files (inlined) into a single CDT.exe using PS2EXE (run on Windows).
     Run from the folder containing Install-Toolkit.ps1, src\ and sponsors.csv.
     If blocked by execution policy: powershell -ExecutionPolicy Bypass -File .\Build-Toolkit-Exe.ps1
 
@@ -16,7 +16,7 @@ $ErrorActionPreference = 'Stop'
 $src = Join-Path $PSScriptRoot 'Install-Toolkit.ps1'
 $csv = Join-Path $PSScriptRoot 'sponsors.csv'
 $tmp = Join-Path $PSScriptRoot 'Install-Toolkit.build.ps1'
-$out = Join-Path $PSScriptRoot 'build\DeployToolkit.exe'
+$out = Join-Path $PSScriptRoot 'build\CDT.exe'
 $icon = Join-Path $PSScriptRoot 'assets\toolkit.ico'
 
 # PS2EXE needs a 4-part numeric version (major.minor.build.revision).

@@ -9,7 +9,7 @@ Windows deployment toolkit for common machine-setup tasks in one GUI (window tit
 - Clean Canfield Capture site databases, set Site IDs, and force SSCT users to change passwords.
 - Check the machine's status and save a QC report.
 
-The toolkit can run as a PowerShell script or as a packaged executable (`DeployToolkit.exe`).
+The toolkit can run as a PowerShell script or as a packaged executable (`CDT.exe`).
 
 ## Project Files
 
@@ -18,7 +18,7 @@ The toolkit can run as a PowerShell script or as a packaged executable (`DeployT
 - `src\lib\`: UI-free helpers (validation, sponsor CSV, USB discovery, Canfield Capture cleanup, local users, status checks).
 - `src\ui\`: Main window and shared progress/message helpers.
 - `src\tabs\`: One file per tab (Computer, Remote Access, Canfield Capture, Cleanup Tool, Summary, Users, Scripts).
-- `Build-Toolkit-Exe.ps1`: Inlines `src\` into the entry script and builds a single `DeployToolkit.exe` using PS2EXE.
+- `Build-Toolkit-Exe.ps1`: Inlines `src\` into the entry script and builds a single `CDT.exe` using PS2EXE.
 - `assets\toolkit.ico`: Icon embedded into the EXE (file icon, window and taskbar). Required by the build.
 - `build_bypass.cmd`: Convenience wrapper to run the build script with execution policy bypass (run it from the repo folder).
 - `.github/workflows/build-exe.yml`: Builds EXE on every push and uploads it as an artifact.
@@ -116,7 +116,7 @@ What the build does:
 
 Output:
 
-- `build\DeployToolkit.exe`
+- `build\CDT.exe`
 
 ## GitHub Actions
 
@@ -127,7 +127,7 @@ Workflow: `.github/workflows/build-exe.yml`
 - Trigger: every push (plus manual dispatch).
 - Runner: `windows-latest`.
 - Action: runs `Build-Toolkit-Exe.ps1`.
-- Artifact: `DeployToolkit-exe` containing `build/DeployToolkit.exe`.
+- Artifact: `CDT-exe` containing `build/CDT.exe`.
 
 ### Release Workflow
 
@@ -136,7 +136,7 @@ Workflow: `.github/workflows/release-exe.yml`
 - Trigger: tag pushes matching `v*` (for example `v1.0.0`) and manual dispatch.
 - Runner: `windows-latest`.
 - Action: builds EXE with the tag as its version (`v1.2.0` becomes `1.2.0.0`), then creates/updates the GitHub Release for the tag. Manual runs from a branch keep `1.0.0.0`.
-- Asset uploaded: `build/DeployToolkit.exe`.
+- Asset uploaded: `build/CDT.exe`.
 
 Create a release by pushing a version tag:
 
@@ -210,6 +210,6 @@ Ported from the Cleanup Tool in the Canfield Setup Tool (`CST.ps1`, not included
 - Build fails with "is not a valid version":
   - Pass `-Version` (or tag) as `vMAJOR.MINOR[.BUILD[.REVISION]]`, for example `v1.2.0`. Suffixes like `-beta` are not supported.
 - EXE missing after workflow run:
-  - Check workflow logs and confirm `build/DeployToolkit.exe` was produced.
+  - Check workflow logs and confirm `build/CDT.exe` was produced.
 - Canfield install returns non-zero exit code:
   - Run that installer's `setup.exe` from the USB drive manually.

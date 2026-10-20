@@ -29,9 +29,9 @@ jobs:
           $ErrorActionPreference = 'Stop'
           ./Build-Toolkit-Exe.ps1
 
-      - name: Upload DeployToolkit.exe artifact
+      - name: Upload CDT.exe artifact
         uses: actions/upload-artifact@v4
         with:
-          name: DeployToolkit-exe
-          path: build/DeployToolkit.exe
+          name: CDT-exe
+          path: build/CDT.exe
           if-no-files-found: error
