@@ -17,10 +17,25 @@ $tabUsb.Controls.Add($usbInfo)
 
 $list = New-Object System.Windows.Forms.ListBox
 $list.Location      = New-Object System.Drawing.Point(15, 48)
-$list.Size          = New-Object System.Drawing.Size(580, 330)
+$list.Size          = New-Object System.Drawing.Size(580, 315)
 $list.HorizontalScrollbar = $true
 $list.DisplayMember = 'Display'
+$list.DrawMode      = 'OwnerDrawFixed'
 $tabUsb.Controls.Add($list)
+
+# Legend for the list colors.
+$legendInstalled = New-Object System.Windows.Forms.Label
+$legendInstalled.Text      = 'Green = already installed on this computer'
+$legendInstalled.ForeColor = [System.Drawing.Color]::ForestGreen
+$legendInstalled.Location  = New-Object System.Drawing.Point(15, 366)
+$legendInstalled.AutoSize  = $true
+$tabUsb.Controls.Add($legendInstalled)
+
+$legendNew = New-Object System.Windows.Forms.Label
+$legendNew.Text     = 'Black = not installed'
+$legendNew.Location = New-Object System.Drawing.Point(300, 366)
+$legendNew.AutoSize = $true
+$tabUsb.Controls.Add($legendNew)
 
 $btnRcg = New-Object System.Windows.Forms.Button
 $btnRcg.Text     = 'Open Response Code Generator'
@@ -37,6 +52,33 @@ $btnUsb.Enabled  = $false
 $tabUsb.Controls.Add($btnUsb)
 
 $script:usbScanned = $false
+
+# Marks list entries whose version is already installed (shown in green) and sizes the horizontal scrollbar.
+function Update-InstalledMarks {
+    $installed = @(Get-CaptureInstalls | ForEach-Object { $_.Name -replace '^Canfield Capture ', '' })
+    $widest = 0
+    foreach ($item in $list.Items) {
+        $item.Installed = [bool]($item.Version -and ($installed -contains $item.Version))
+        $widest = [math]::Max($widest, [System.Windows.Forms.TextRenderer]::MeasureText($item.Display, $list.Font).Width)
+    }
+    $list.HorizontalExtent = $widest + 6
+    $list.Invalidate()
+}
+
+$list.Add_DrawItem({
+    param($sender, $e)
+    if ($e.Index -lt 0) { return }
+    $e.DrawBackground()
+    $item = $list.Items[$e.Index]
+    $selected = ($e.State -band [System.Windows.Forms.DrawItemState]::Selected) -ne 0
+    $color = if ($selected) { [System.Drawing.SystemColors]::HighlightText }
+        elseif ($item.Installed) { [System.Drawing.Color]::ForestGreen }
+        else { $list.ForeColor }
+    $flags = [System.Windows.Forms.TextFormatFlags]'Left, VerticalCenter, NoPrefix'
+    $bounds = New-Object System.Drawing.Rectangle($e.Bounds.X, $e.Bounds.Y, [math]::Max($e.Bounds.Width, $list.HorizontalExtent), $e.Bounds.Height)
+    [System.Windows.Forms.TextRenderer]::DrawText($e.Graphics, $item.Display, $e.Font, $bounds, $color, $flags)
+    $e.DrawFocusRectangle()
+})
 $script:responseCodeGenerator = $null   # ResponseCodeGenerator.exe found by the last scan
 
 function Invoke-UsbScan {
@@ -88,8 +130,9 @@ function Invoke-UsbScan {
         $name = Split-Path -Leaf $f
         if (-not $name) { $name = $f }   # setup.exe in the drive root
         $display = '{0}    ({1})' -f $name, $f
-        [void]$list.Items.Add([pscustomobject]@{ Display = $display; Folder = $f })
+        [void]$list.Items.Add([pscustomobject]@{ Display = $display; Folder = $f; Version = (Get-InstallerVersion $f); Installed = $false })
     }
+    Update-InstalledMarks
     $usbInfo.Text = 'Found installer(s) in {0} folder(s). Select one:' -f $found.Count
 }
 
@@ -123,6 +166,7 @@ $btnUsb.Add_Click({
         # Normal window style: if an installer ignores the switches and shows UI, the user can see it.
         $code = Invoke-WithProgress $setup $SilentArgs $choice.Folder 'Normal' $label
         Exit-Busy
+        Update-InstalledMarks
         switch ($code) {
             0       { Show-Message "Installation completed successfully." 'Information' }
             { $_ -in 1641, 3010 } { Show-Message "Installation completed. A reboot is required to finish." 'Information' }

@@ -165,6 +165,7 @@ git push origin v1.0.0
 - Scans attached USB drives for folders containing `setup.exe`. The scan runs automatically the first time the tab is opened, can be cancelled, and can be repeated with **Scan USB**.
 - Lets you choose the installer folder; it runs silently with `/S /v/qn`.
 - **Open Response Code Generator** opens `ResponseCodeGenerator.exe` found on the USB drive during the scan (greyed out when none was found).
+- Installers whose version is already installed show in green (a legend under the list explains the colors). The version comes from the installer's folder name or path (for example `v3.6.0`), else from `setup.exe`'s product version, and is matched against `C:\Program Files (x86)\Canfield Scientific Inc\Canfield Capture v*`.
 - Asks first if a version of Canfield Capture is already installed.
 - Runs installer and reports result or reboot-required codes.
 

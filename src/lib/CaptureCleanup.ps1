@@ -89,6 +89,17 @@ function Get-CaptureInstalls {
         })
 }
 
+# Version ('v3.6.0') of a Canfield Capture installer folder: from the folder name, else its path,
+# else setup.exe's product version. $null when none is found.
+function Get-InstallerVersion([string]$Folder) {
+    foreach ($text in @((Split-Path -Leaf $Folder), $Folder)) {
+        if ($text -match 'v?(\d+\.\d+\.\d+)') { return 'v' + $Matches[1] }
+    }
+    $pv = (Get-Item -LiteralPath (Join-Path $Folder 'setup.exe') -ErrorAction SilentlyContinue).VersionInfo.ProductVersion
+    if ($pv -match '(\d+\.\d+\.\d+)') { return 'v' + $Matches[1] }
+    return $null
+}
+
 # Copies Registered_Users.sdf from the first listed version that has one to the versions that have none,
 # so every version knows the site's users. An existing Registered_Users.sdf is never overwritten.
 # Returns the names of the versions it copied to.
