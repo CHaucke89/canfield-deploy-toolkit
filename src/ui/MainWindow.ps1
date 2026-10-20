@@ -31,3 +31,9 @@ function New-Group($Page, [string]$Text, [int]$Y, [int]$Height) {
     $Page.Controls.Add($g)
     return $g
 }
+
+# Green for good, red otherwise.
+function Set-StatusLabel($Label, [string]$Text, [bool]$Good) {
+    $Label.Text      = $Text
+    $Label.ForeColor = if ($Good) { [System.Drawing.Color]::ForestGreen } else { [System.Drawing.Color]::Firebrick }
+}

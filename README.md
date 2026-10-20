@@ -17,7 +17,7 @@ The toolkit can run as a PowerShell script or as a packaged executable (`DeployT
 - `src\LoadOrder.ps1`: Ordered list of source files to load (also used by the build).
 - `src\lib\`: UI-free helpers (validation, sponsor CSV, USB discovery, Canfield Capture cleanup, local users, status checks).
 - `src\ui\`: Main window and shared progress/message helpers.
-- `src\tabs\`: One file per tab (Computer, Users, Remote Access, Canfield Capture, Cleanup Tool, Summary).
+- `src\tabs\`: One file per tab (Computer, Remote Access, Canfield Capture, Cleanup Tool, Summary, Users, Scripts).
 - `Build-Toolkit-Exe.ps1`: Inlines `src\` into the entry script and builds a single `DeployToolkit.exe` using PS2EXE.
 - `assets\toolkit.ico`: Icon embedded into the EXE (file icon, window and taskbar). Required by the build.
 - `build_bypass.cmd`: Convenience wrapper to run the build script with execution policy bypass (run it from the repo folder).
@@ -57,7 +57,7 @@ Behavior:
 
 ## Scripts Folder
 
-The Remote Access tab installs these files. They are not in this repo. The toolkit looks in a `Scripts` folder next to the script/EXE first, then in `C:\tools\Canfield_Setup_Tool\Scripts` (the old Canfield Setup Tool location). Buttons are greyed out when a file is missing.
+The Scripts tab (Canfield scripts) and the Remote Access tab (Resolve MDM) use these files. They are not in this repo. The toolkit looks in a `Scripts` folder next to the script/EXE first, then in `C:\tools\Canfield_Setup_Tool\Scripts` (the old Canfield Setup Tool location). Buttons are greyed out when a file is missing.
 
 ```text
 Scripts\
@@ -155,20 +155,10 @@ git push origin v1.0.0
 - Windows Update: opens Windows Update in Settings.
 - BitLocker Encryption Status: shows whether the system drive is encrypted (green), encrypting or decrypting with the percentage done (amber, refreshed every 10 seconds while the tab is open), or not encrypted / missing a recovery key (red).
 
-### Users Tab
-
-- Create site user: first name, last name and optional prefix. The username fills in as first initial + last name (letters only, lower case) and can be edited. The temporary password defaults to `Photo321`. The user is added to the local `SSCT` group (created if missing) and must change the password at first sign-in.
-- If every installed protocol uses SSO, the tab warns that local users are usually not needed and asks before creating one.
-- Lists the local users in the `SSCT` group. Reset Password sets a new temporary password (expired, so it must be changed at next sign-in); Change Name sets the full name.
-- Delete User removes the selected Windows account after a Yes/No that names it. This is the only place the toolkit deletes a user. `Site Photographer`, `SharedAdmin`, `Administrator` and the signed-in account cannot be deleted.
-- Create SharedAdmin Account asks for a password, then creates `SharedAdmin` (password never expires, user cannot change it) in the local Administrators group.
-- Passwords are never stored on disk.
-
 ### Remote Access Tab
 
 - LogMeIn: shows whether LogMeIn is installed, loads the sponsor list from CSV, downloads the latest `logmein.msi` via `curl.exe` and installs it silently with the selected `DEPLOYID` using `msiexec.exe`. Asks first if LogMeIn is already installed.
 - Resolve MDM: shows the enrollment status and enrolls with `CanfieldScientific.ppkg` (`Install-ProvisioningPackage`).
-- Canfield scripts: for the Reboot script (`RebootShutdown` task), BGInfo (`BginfoDesktop`) and the Windows Update script (`WindowsUpdate`), shows On/Off/Not installed and offers Install, Turn On and Turn Off.
 
 ### Canfield Capture Tab
 
@@ -192,6 +182,20 @@ Ported from the Cleanup Tool in the Canfield Setup Tool (`CST.ps1`, not included
 - Shows computer name, service tag, model, date and time, time zone, Wi-Fi, BitLocker, LogMeIn, Resolve MDM, installed Canfield Capture versions and the number of site users. Refreshes each time the tab is opened.
 - Lists installed protocols with their version, SSO use, and the Site ID last logged by Canfield Capture (`C:\ProgramData\Canfield\DiagLib`). A cleaned version shows "Not set" until its Site ID is set again.
 - **Save Report** (technician initials required) saves a JPG picture of the window plus a `.txt` with the same name, containing every check, the protocols, initials and comments.
+
+### Users Tab
+
+- Create site user: first name, last name and optional prefix. The username fills in as first initial + last name (letters only, lower case) and can be edited. The temporary password defaults to `Photo321`. The user is added to the local `SSCT` group (created if missing) and must change the password at first sign-in.
+- If every installed protocol uses SSO, the tab warns that local users are usually not needed and asks before creating one.
+- Lists the local users in the `SSCT` group. Reset Password sets a new temporary password (expired, so it must be changed at next sign-in); Change Name sets the full name.
+- Delete User removes the selected Windows account after a Yes/No that names it. This is the only place the toolkit deletes a user. `Site Photographer`, `SharedAdmin`, `Administrator` and the signed-in account cannot be deleted.
+- Create SharedAdmin Account asks for a password, then creates `SharedAdmin` (password never expires, user cannot change it) in the local Administrators group.
+- Passwords are never stored on disk.
+
+### Scripts Tab
+
+- For the Reboot script (`RebootShutdown` task), BGInfo (`BginfoDesktop`) and the Windows Update script (`WindowsUpdate`), shows On/Off/Not installed and offers Install, Turn On and Turn Off.
+- Installers come from the Scripts folder (see [Scripts Folder](#scripts-folder)).
 
 ## Troubleshooting
 
