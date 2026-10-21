@@ -46,6 +46,8 @@ if (-not $CsvPath) { $CsvPath = Join-Path $scriptDir 'sponsors.csv' }
 
 # Build-Toolkit-Exe.ps1 replaces the next line with a snapshot of the CSV (fallback copy).
 $EmbeddedCsv = $null # __EMBEDDED_CSV__
+# Build-Toolkit-Exe.ps1 replaces the next line with ResponseCodeGenerator.exe (base64), used when the USB has no copy.
+$EmbeddedRcg = $null # __EMBEDDED_RCG__
 
 # --- Self-elevate when run as a .ps1 (the exe uses a UAC manifest instead) ---
 $isAdmin = ([Security.Principal.WindowsPrincipal][Security.Principal.WindowsIdentity]::GetCurrent()
