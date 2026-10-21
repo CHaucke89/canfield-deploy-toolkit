@@ -1,6 +1,6 @@
 # Canfield Deployment Toolkit
 
-Windows deployment toolkit for common machine-setup tasks in one GUI (window title: "Canfield Deployment Toolkit"):
+Windows deployment toolkit for common machine-setup tasks in one GUI:
 
 - Rename the computer, set the `Site Photographer` password, and open Date/Time and Windows Update settings.
 - Create, reset and delete SSCT site users, and create the `SharedAdmin` account.
