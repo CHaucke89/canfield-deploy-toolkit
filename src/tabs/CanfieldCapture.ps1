@@ -41,7 +41,7 @@ $btnRcg = New-Object System.Windows.Forms.Button
 $btnRcg.Text     = 'Open Response Code Generator'
 $btnRcg.Location = New-Object System.Drawing.Point(15, 390)
 $btnRcg.Size     = New-Object System.Drawing.Size(200, 30)
-$btnRcg.Enabled  = $false
+$btnRcg.Enabled  = [bool]$EmbeddedRcg
 $tabUsb.Controls.Add($btnRcg)
 
 $btnUsb = New-Object System.Windows.Forms.Button
@@ -81,11 +81,28 @@ $list.Add_DrawItem({
 })
 $script:responseCodeGenerator = $null   # ResponseCodeGenerator.exe found by the last scan
 
+# Path of ResponseCodeGenerator.exe to run: the USB copy if the scan found one, else the embedded
+# copy extracted to %TEMP%\CDT. $null when neither is available.
+function Get-ResponseCodeGenerator {
+    $usb = $script:responseCodeGenerator
+    if ($usb -and [System.IO.File]::Exists($usb)) { return $usb }
+    if (-not $EmbeddedRcg) { return $null }
+    $bytes = [Convert]::FromBase64String($EmbeddedRcg)
+    $dir   = Join-Path $env:TEMP 'CDT'
+    $exe   = Join-Path $dir 'ResponseCodeGenerator.exe'
+    # skip rewriting an identical copy (it may still be open from an earlier click)
+    if (-not ([System.IO.File]::Exists($exe) -and (Get-Item -LiteralPath $exe).Length -eq $bytes.Length)) {
+        [void][System.IO.Directory]::CreateDirectory($dir)
+        [System.IO.File]::WriteAllBytes($exe, $bytes)
+    }
+    return $exe
+}
+
 function Invoke-UsbScan {
     $script:usbScanned = $true
     $list.Items.Clear()
     $btnUsb.Enabled = $false
-    $btnRcg.Enabled = $false
+    $btnRcg.Enabled = [bool]$EmbeddedRcg
     $script:responseCodeGenerator = $null
 
     Enter-Busy "Looking for USB drives..." $true
@@ -122,7 +139,7 @@ function Invoke-UsbScan {
     $cancelled = $script:cancelRequested
     Exit-Busy
 
-    $btnRcg.Enabled = [bool]$script:responseCodeGenerator
+    $btnRcg.Enabled = [bool]($script:responseCodeGenerator -or $EmbeddedRcg)
     if ($cancelled) { $usbInfo.Text = 'Scan cancelled.'; return }
     if ($found.Count -eq 0) { $usbInfo.Text = 'No installer found on the USB drive.'; return }
 
@@ -179,8 +196,12 @@ $btnUsb.Add_Click({
 })
 
 $btnRcg.Add_Click({
-    $exe = $script:responseCodeGenerator
-    if (-not $exe -or -not (Test-Path -LiteralPath $exe)) {
+    try { $exe = Get-ResponseCodeGenerator }
+    catch {
+        Show-Message "Could not extract the Response Code Generator:`n$($_.Exception.Message)" 'Error'
+        return
+    }
+    if (-not $exe) {
         $btnRcg.Enabled = $false
         Show-Message "ResponseCodeGenerator.exe was not found on the USB drive.`nInsert the drive and click Scan USB." 'Warning'
         return

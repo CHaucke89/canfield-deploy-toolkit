@@ -20,6 +20,7 @@ The toolkit can run as a PowerShell script or as a packaged executable (`CDT.exe
 - `src\tabs\`: One file per tab (Computer, Remote Access, Canfield Capture, Cleanup Tool, Summary, Users, Scripts).
 - `Build-Toolkit-Exe.ps1`: Inlines `src\` into the entry script and builds a single `CDT.exe` using PS2EXE.
 - `assets\toolkit.ico`: Icon embedded into the EXE (file icon, window and taskbar). Required by the build.
+- `assets\ResponseCodeGenerator.exe` (not committed): optional; embedded into the EXE when present at build time.
 - `build_bypass.cmd`: Convenience wrapper to run the build script with execution policy bypass (run it from the repo folder).
 - `.github/workflows/build-exe.yml`: Builds EXE on every push and uploads it as an artifact.
 - `.github/workflows/release-exe.yml`: Builds EXE on version tag push and publishes it to a GitHub Release.
@@ -112,7 +113,8 @@ What the build does:
 1. Installs `ps2exe` if it is missing.
 2. Inlines the `src\` files (in `src\LoadOrder.ps1` order) into a temporary copy of `Install-Toolkit.ps1`.
 3. Embeds `sponsors.csv` as a fallback if it is present.
-4. Runs PS2EXE with `assets\toolkit.ico` as the icon, a UAC admin manifest, no console window, and the chosen version.
+4. Embeds `assets\ResponseCodeGenerator.exe` if it is present, so the Canfield Capture tab can open it without the USB drive. It is gitignored (Canfield's binary is not committed), so only local builds include it.
+5. Runs PS2EXE with `assets\toolkit.ico` as the icon, a UAC admin manifest, no console window, and the chosen version.
 
 Output:
 
@@ -164,7 +166,7 @@ git push origin v1.0.0
 
 - Scans attached USB drives for folders containing `setup.exe`. The scan runs automatically the first time the tab is opened, can be cancelled, and can be repeated with **Scan USB**.
 - Lets you choose the installer folder; it runs silently with `/S /v/qn`.
-- **Open Response Code Generator** opens `ResponseCodeGenerator.exe` found on the USB drive during the scan (greyed out when none was found).
+- **Open Response Code Generator** opens `ResponseCodeGenerator.exe` found on the USB drive during the scan. If the USB has none, it runs the copy embedded in the EXE at build time (extracted to `%TEMP%\CDT`). It is greyed out when neither is available.
 - Installers whose version is already installed show in green (a legend under the list explains the colors). The version comes from the installer's folder name or path (for example `v3.6.0`), else from `setup.exe`'s product version, and is matched against `C:\Program Files (x86)\Canfield Scientific Inc\Canfield Capture v*`.
 - Asks first if a version of Canfield Capture is already installed.
 - Runs installer and reports result or reboot-required codes.

@@ -2,6 +2,7 @@
 .SYNOPSIS
     Packages Install-Toolkit.ps1 plus the src\ files (inlined) into a single CDT.exe using PS2EXE (run on Windows).
     Run from the folder containing Install-Toolkit.ps1, src\ and sponsors.csv.
+    If assets\ResponseCodeGenerator.exe is present it is embedded too.
     If blocked by execution policy: powershell -ExecutionPolicy Bypass -File .\Build-Toolkit-Exe.ps1
 
 .PARAMETER Version
@@ -15,6 +16,7 @@ param(
 $ErrorActionPreference = 'Stop'
 $src = Join-Path $PSScriptRoot 'Install-Toolkit.ps1'
 $csv = Join-Path $PSScriptRoot 'sponsors.csv'
+$rcg = Join-Path $PSScriptRoot 'assets\ResponseCodeGenerator.exe'
 $tmp = Join-Path $PSScriptRoot 'Install-Toolkit.build.ps1'
 $out = Join-Path $PSScriptRoot 'build\CDT.exe'
 $icon = Join-Path $PSScriptRoot 'assets\toolkit.ico'
@@ -55,6 +57,13 @@ if (Test-Path -LiteralPath $csv) {
     $content = $content.Replace('$EmbeddedCsv = $null # __EMBEDDED_CSV__', $embed)
 } else {
     Write-Warning "sponsors.csv not found; building without an embedded sponsor list."
+}
+# Embed ResponseCodeGenerator.exe (base64) so the exe can run it without the USB drive.
+if (Test-Path -LiteralPath $rcg) {
+    $b64     = [Convert]::ToBase64String([System.IO.File]::ReadAllBytes($rcg))
+    $content = $content.Replace('$EmbeddedRcg = $null # __EMBEDDED_RCG__', "`$EmbeddedRcg = '$b64'")
+} else {
+    Write-Warning "assets\ResponseCodeGenerator.exe not found; building without an embedded Response Code Generator."
 }
 Set-Content -LiteralPath $tmp -Value $content -Encoding UTF8
 
